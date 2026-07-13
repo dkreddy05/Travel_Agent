@@ -1,0 +1,166 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────
+#  WanderAI v2.0 — Production Stack
+#  Used for real deployments. Key differences from dev:
+#   - No source-volume mounts (code baked into image)
+#   - All secrets via environment variables / secrets
+#   - Resource limits on every service
+#   - FLASK_ENV=production, DEBUG=false
+#   - Nginx TLS termination expected upstream (e.g. load balancer)
+# ─────────────────────────────────────────────────────────────
+
+x-common-env: &common-env
+  FLASK_ENV: production
+  FLASK_DEBUG: "false"
+  DATABASE_URL: ${DATABASE_URL}
+  REDIS_URL: ${REDIS_URL}
+  QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
+  WATSONX_API_KEY: ${WATSONX_API_KEY}
+  WATSONX_URL: ${WATSONX_URL}
+  WATSONX_PROJECT_ID: ${WATSONX_PROJECT_ID}
+  GRANITE_MODEL_ID: ${GRANITE_MODEL_ID:-meta-llama/llama-3-3-70b-instruct}
+  FLASK_SECRET_KEY: ${FLASK_SECRET_KEY}
+  JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+  APP_URL: ${APP_URL}
+  SENTRY_DSN: ${SENTRY_DSN:-}
+  MAIL_SERVER: ${MAIL_SERVER:-smtp.gmail.com}
+  MAIL_PORT: ${MAIL_PORT:-587}
+  MAIL_USERNAME: ${MAIL_USERNAME:-}
+  MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+
+services:
+  # ── Flask API ────────────────────────────────────────────
+  api:
+    image: ${REGISTRY:-wanderai}/wanderai:${IMAGE_TAG:-latest}
+    ports:
+      - "5000:5000"
+    environment:
+      <<: *common-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+        reservations:
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  # ── Celery Worker ────────────────────────────────────────
+  worker:
+    image: ${REGISTRY:-wanderai}/wanderai:${IMAGE_TAG:-latest}
+    command: celery -A wanderai.extensions.celery_app worker --loglevel=info --concurrency=2
+    environment:
+      <<: *common-env
+    depends_on:
+      - redis
+      - postgres
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+
+  # ── Celery Beat (scheduler) ──────────────────────────────
+  beat:
+    image: ${REGISTRY:-wanderai}/wanderai:${IMAGE_TAG:-latest}
+    command: celery -A wanderai.extensions.celery_app beat --loglevel=info
+    environment:
+      <<: *common-env
+    depends_on:
+      - redis
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 256M
+
+  # ── PostgreSQL ───────────────────────────────────────────
+  # Only include this service when NOT using a managed DB (e.g. RDS, Neon).
+  # If using a managed DB, remove this block and set DATABASE_URL directly.
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-wanderai}
+      POSTGRES_USER: ${POSTGRES_USER:-wanderai}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wanderai}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+
+  # ── Redis ────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+  # ── Qdrant Vector DB ─────────────────────────────────────
+  qdrant:
+    image: qdrant/qdrant:v1.9.4
+    volumes:
+      - qdrant_data:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__HTTP_PORT: 6333
+      QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY:-}
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+  # ── Nginx Reverse Proxy ───────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+
+volumes:
+  postgres_data:
+  redis_data:
+  qdrant_data:

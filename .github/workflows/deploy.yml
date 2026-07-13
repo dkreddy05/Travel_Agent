@@ -1,0 +1,166 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false    # never cancel a deploy in-progress
+
+jobs:
+  # ── Step 1: Quality gate (inline — reusable workflow call is not supported here) ──
+  quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dev dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint with ruff
+        run: ruff check .
+
+      - name: Format check with black
+        run: black --check .
+
+      - name: Security scan with bandit
+        run: bandit -r wanderai/ -ll
+
+      - name: Dependency vulnerability scan
+        run: safety check -r requirements.txt
+
+  # ── Step 2: Tests ─────────────────────────────────────────────────────────────
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    needs: quality
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: wanderai_test
+          POSTGRES_USER: wanderai
+          POSTGRES_PASSWORD: wanderai
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run tests with coverage
+        env:
+          FLASK_ENV: testing
+          DATABASE_URL: postgresql://wanderai:wanderai@localhost:5432/wanderai_test
+          REDIS_URL: redis://localhost:6379/0
+          FLASK_SECRET_KEY: test-secret-key
+          JWT_SECRET_KEY: test-jwt-key
+          WATSONX_API_KEY: test-key
+          WATSONX_PROJECT_ID: test-project
+        run: |
+          pytest tests/ \
+            --cov=wanderai \
+            --cov-report=xml \
+            --cov-fail-under=70 \
+            -v
+
+  # ── Step 3: Build & push image ────────────────────────────────────────────────
+  build:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+    outputs:
+      image_tag: ${{ steps.meta.outputs.image_tag }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set image tag
+        id: meta
+        run: echo "image_tag=${{ secrets.REGISTRY }}/wanderai:${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to container registry
+        run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login -u "${{ secrets.REGISTRY_USER }}" --password-stdin
+
+      - name: Build and push
+        run: |
+          docker build -t ${{ steps.meta.outputs.image_tag }} \
+                       -t ${{ secrets.REGISTRY }}/wanderai:latest .
+          docker push ${{ steps.meta.outputs.image_tag }}
+          docker push ${{ secrets.REGISTRY }}/wanderai:latest
+
+  # ── Step 4: Deploy ────────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build
+    environment: production
+
+    steps:
+      - name: Trigger rolling deploy
+        # Replace the curl line with your platform's deploy hook:
+        #   Render  → curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+        #   Fly.io  → flyctl deploy --image ${{ needs.build.outputs.image_tag }}
+        #   Railway → railway up
+        run: |
+          curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+
+      - name: Wait for service to start
+        run: sleep 45
+
+      - name: Smoke test — liveness
+        run: |
+          curl -fsS "${{ secrets.APP_URL }}/api/v1/health" \
+            | grep -q '"status":"ok"' \
+            && echo "Liveness OK" \
+            || (echo "Liveness FAILED" && exit 1)
+
+      - name: Smoke test — readiness
+        run: |
+          curl -fsS "${{ secrets.APP_URL }}/api/v1/health/ready" \
+            | python3 -c "import sys,json; d=json.load(sys.stdin); sys.exit(0 if d.get('data',{}).get('status')=='ok' else 1)" \
+            && echo "Readiness OK" \
+            || echo "Readiness degraded (non-fatal — AI backend may be warming up)"
+
+      - name: Rollback on smoke-test failure
+        if: failure()
+        run: |
+          echo "Smoke test failed — triggering rollback to previous release"
+          curl -fsS -X POST "${{ secrets.RENDER_ROLLBACK_HOOK }}" || true
+          exit 1
+
+      - name: Notify success
+        if: success()
+        run: echo "Deploy ${{ github.sha }} succeeded and passed smoke tests."

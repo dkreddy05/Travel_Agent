@@ -1,0 +1,164 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────
+#  WanderAI v2.0 — Local Development Stack
+#  docker-compose up          → starts all services
+#  docker-compose up api      → starts only the API + its deps
+# ─────────────────────────────────────────────────────────────
+
+x-common-env: &common-env
+  FLASK_ENV: development
+  FLASK_DEBUG: "true"
+  DATABASE_URL: postgresql://wanderai:wanderai@postgres:5432/wanderai
+  REDIS_URL: redis://redis:6379/0
+  QDRANT_URL: http://qdrant:6333
+  WATSONX_API_KEY: ${WATSONX_API_KEY}
+  WATSONX_URL: ${WATSONX_URL}
+  WATSONX_PROJECT_ID: ${WATSONX_PROJECT_ID}
+  GRANITE_MODEL_ID: ${GRANITE_MODEL_ID:-meta-llama/llama-3-3-70b-instruct}
+  FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:-dev-secret-change-me}
+  JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-jwt-secret-change-me}
+
+services:
+  # ── Flask API ────────────────────────────────────────────
+  api:
+    build: .
+    ports:
+      - "5000:5000"
+    env_file: .env
+    environment:
+      <<: *common-env
+      FLASK_DEBUG: "true"
+    command: >
+      sh -c "flask db upgrade &&
+             python app.py"
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Celery Worker ────────────────────────────────────────
+  worker:
+    build: .
+    command: celery -A wanderai.extensions.celery_app worker --loglevel=info --concurrency=2
+    env_file: .env
+    environment:
+      <<: *common-env
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - postgres
+    restart: unless-stopped
+
+  # ── Celery Beat (scheduler) ──────────────────────────────
+  beat:
+    build: .
+    command: celery -A wanderai.extensions.celery_app beat --loglevel=info
+    env_file: .env
+    environment:
+      <<: *common-env
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  # ── Flower (Celery monitoring) ───────────────────────────
+  flower:
+    build: .
+    command: celery -A wanderai.extensions.celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    env_file: .env
+    environment:
+      <<: *common-env
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  # ── PostgreSQL ───────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: wanderai
+      POSTGRES_USER: wanderai
+      POSTGRES_PASSWORD: wanderai
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wanderai"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis ────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Qdrant Vector DB ─────────────────────────────────────
+  qdrant:
+    image: qdrant/qdrant:v1.9.4
+    volumes:
+      - qdrant_data:/qdrant/storage
+    ports:
+      - "6333:6333"
+    environment:
+      QDRANT__SERVICE__HTTP_PORT: 6333
+    restart: unless-stopped
+
+  # ── Nginx Reverse Proxy ───────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  # ── Prometheus ────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./nginx/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+
+  # ── Grafana ───────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-change-me-grafana-password}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  qdrant_data:
+  prometheus_data:
+  grafana_data:
