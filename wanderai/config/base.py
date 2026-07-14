@@ -48,7 +48,7 @@ class BaseConfig:
     WATSONX_URL: str = os.getenv("WATSONX_URL", "")
     WATSONX_PROJECT_ID: str = os.getenv("WATSONX_PROJECT_ID", "")
     GRANITE_MODEL_ID: str = os.getenv(
-        "GRANITE_MODEL_ID", "meta-llama/llama-3-3-70b-instruct"
+        "GRANITE_MODEL_ID", "ibm/granite-13b-instruct-v2"
     )
 
     # ── LiteLLM / AI ─────────────────────────────────────────

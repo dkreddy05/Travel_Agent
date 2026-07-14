@@ -4,7 +4,7 @@ Trip, Destination, Itinerary models.
 """
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum as PyEnum
 from wanderai.extensions import db
 
@@ -47,9 +47,9 @@ class Trip(db.Model):
     transport_preference = db.Column(db.String(100), nullable=True)
     accommodation_preference = db.Column(db.String(100), nullable=True)
     status = db.Column(db.Enum(TripStatus), default=TripStatus.DRAFT, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = db.Column(
-        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+        db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False
     )
 
     # Relationships
@@ -101,9 +101,18 @@ class Itinerary(db.Model):
     model_used = db.Column(db.String(100), nullable=True)
     prompt_version = db.Column(db.String(20), nullable=True)
     generation_time_ms = db.Column(db.Integer, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = db.Column(
-        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+        db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False
+    )
+    raw_text = db.Column(db.Text, nullable=False)
+    structured_json = db.Column(db.JSON, nullable=True)
+    model_used = db.Column(db.String(100), nullable=True)
+    prompt_version = db.Column(db.String(20), nullable=True)
+    generation_time_ms = db.Column(db.Integer, nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False
     )
 
     trip = db.relationship("Trip", back_populates="itinerary")

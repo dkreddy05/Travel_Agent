@@ -1,6 +1,7 @@
 """
 wanderai/tasks/cleanup_tasks.py
 Scheduled maintenance tasks.
+The Flask app context is injected automatically by ContextTask (init_celery).
 """
 
 from wanderai.tasks import celery
@@ -9,22 +10,18 @@ from wanderai.tasks import celery
 @celery.task(name="tasks.cleanup_expired_sessions")
 def cleanup_expired_sessions():
     """Remove expired DB sessions and Redis blocklist entries."""
-    from wanderai.app import create_app
+    from datetime import datetime, timezone
     from wanderai.extensions import db
-    from datetime import datetime
+    from wanderai.models.user import UserSession
 
-    app = create_app()
-    with app.app_context():
-        from wanderai.models.user import UserSession
+    # Delete sessions that are BOTH expired AND inactive (already revoked).
+    # Active sessions past their expiry time are also cleaned up.
+    expired = UserSession.query.filter(
+        UserSession.expires_at < datetime.now(timezone.utc),
+    ).delete()
+    db.session.commit()
 
-        # Delete sessions that are BOTH expired AND inactive (already revoked).
-        # Active sessions past their expiry time are also cleaned up.
-        expired = UserSession.query.filter(
-            UserSession.expires_at < datetime.utcnow(),
-        ).delete()
-        db.session.commit()
+    from wanderai.observability.logger import get_logger
 
-        from wanderai.observability.logger import get_logger
-
-        get_logger(__name__).info("sessions_cleaned", count=expired)
-        return {"cleaned_sessions": expired}
+    get_logger(__name__).info("sessions_cleaned", count=expired)
+    return {"cleaned_sessions": expired}

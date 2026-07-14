@@ -27,14 +27,13 @@ Reply with ONLY the intent word. No explanation.
 
 def coordinator_node(state: TravelState) -> TravelState:
     """Classify user intent and route the workflow."""
-    from flask import current_app
-    from wanderai.ai.client import AIClient
+    from wanderai.ai.pipeline import get_client
 
     message = state.get("user_message", "")
     logger.info("coordinator_classifying", message_preview=message[:80])
 
     try:
-        client = AIClient(current_app.config)
+        client = get_client()
         result = client.complete(
             messages=[
                 {"role": "system", "content": COORDINATOR_PROMPT},

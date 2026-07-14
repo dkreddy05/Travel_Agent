@@ -11,8 +11,7 @@ logger = get_logger(__name__)
 
 def planner_node(state: TravelState) -> TravelState:
     """Generate a full day-by-day itinerary."""
-    from flask import current_app
-    from wanderai.ai.client import AIClient
+    from wanderai.ai.pipeline import get_client
     from wanderai.ai.prompts.itinerary import ITINERARY_USER_TEMPLATE
     from jinja2 import Template
 
@@ -41,7 +40,7 @@ def planner_node(state: TravelState) -> TravelState:
         prompt += rag_block
 
     try:
-        client = AIClient(current_app.config)
+        client = get_client()
         from wanderai.ai.prompts.system import build_system_prompt
 
         result = client.complete(

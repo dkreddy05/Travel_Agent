@@ -13,11 +13,12 @@ def generate_itinerary_task(self, trip_id: str, user_id: str) -> dict:
     """
     Async itinerary generation task.
     Runs the full AI pipeline in a background worker.
+    The Flask app context is injected automatically by ContextTask (init_celery).
     """
     import time
-    from wanderai.app import create_app
+    from flask import current_app
     from wanderai.extensions import db
-    from wanderai.ai.pipeline import run_single_prompt
+    from wanderai.ai.pipeline import init_pipeline, get_client, run_single_prompt
     from wanderai.ai.prompts.itinerary import ITINERARY_USER_TEMPLATE
     from wanderai.repositories.trip_repository import (
         TripRepository,
@@ -25,58 +26,62 @@ def generate_itinerary_task(self, trip_id: str, user_id: str) -> dict:
     )
     from jinja2 import Template
 
-    app = create_app()
-    with app.app_context():
-        trip_repo = TripRepository()
-        itin_repo = ItineraryRepository()
-        trip = trip_repo.get_by_id(trip_id)
+    # Ensure the AI pipeline singleton is initialised for this worker process.
+    try:
+        get_client()
+    except RuntimeError:
+        init_pipeline(current_app.config)
 
-        if not trip:
-            return {"error": "Trip not found"}
+    trip_repo = TripRepository()
+    itin_repo = ItineraryRepository()
+    trip = trip_repo.get_by_id(trip_id)
 
-        try:
-            self.update_state(
-                state="PROGRESS", meta={"step": "Generating itinerary", "progress": 10}
-            )
+    if not trip:
+        return {"error": "Trip not found"}
 
-            prompt = Template(ITINERARY_USER_TEMPLATE).render(
-                destination=trip.destination,
-                days=trip.days,
-                budget=trip.budget_tier.value if trip.budget_tier else "mid-range",
-                interests=", ".join(trip.interests) if trip.interests else "general",
-                travelers=trip.travelers,
-                transport=trip.transport_preference or "flexible",
-                accommodation=trip.accommodation_preference or "hotel",
-            )
+    try:
+        self.update_state(
+            state="PROGRESS", meta={"step": "Generating itinerary", "progress": 10}
+        )
 
-            self.update_state(
-                state="PROGRESS", meta={"step": "Calling AI model", "progress": 30}
-            )
+        prompt = Template(ITINERARY_USER_TEMPLATE).render(
+            destination=trip.destination,
+            days=trip.days,
+            budget=trip.budget_tier.value if trip.budget_tier else "mid-range",
+            interests=", ".join(trip.interests) if trip.interests else "general",
+            travelers=trip.travelers,
+            transport=trip.transport_preference or "flexible",
+            accommodation=trip.accommodation_preference or "hotel",
+        )
 
-            start = time.monotonic()
-            result = run_single_prompt(prompt, task="itinerary", max_tokens=2000)
-            gen_ms = round((time.monotonic() - start) * 1000)
+        self.update_state(
+            state="PROGRESS", meta={"step": "Calling AI model", "progress": 30}
+        )
 
-            self.update_state(
-                state="PROGRESS", meta={"step": "Saving to database", "progress": 90}
-            )
+        start = time.monotonic()
+        result = run_single_prompt(prompt, task="itinerary", max_tokens=2000)
+        gen_ms = round((time.monotonic() - start) * 1000)
 
-            itin = itin_repo.upsert(
-                trip_id=trip.id,
-                raw_text=result["text"],
-                model_used=result.get("model", ""),
-                prompt_version="2.0.0",
-                generation_time_ms=gen_ms,
-            )
-            db.session.commit()
+        self.update_state(
+            state="PROGRESS", meta={"step": "Saving to database", "progress": 90}
+        )
 
-            return {
-                "trip_id": trip_id,
-                "itinerary_id": itin.id,
-                "destination": trip.destination,
-                "generation_time_ms": gen_ms,
-            }
+        itin = itin_repo.upsert(
+            trip_id=trip.id,
+            raw_text=result["text"],
+            model_used=result.get("model", ""),
+            prompt_version="2.0.0",
+            generation_time_ms=gen_ms,
+        )
+        db.session.commit()
 
-        except Exception as exc:
-            db.session.rollback()
-            raise self.retry(exc=exc)
+        return {
+            "trip_id": trip_id,
+            "itinerary_id": itin.id,
+            "destination": trip.destination,
+            "generation_time_ms": gen_ms,
+        }
+
+    except Exception as exc:
+        db.session.rollback()
+        raise self.retry(exc=exc)

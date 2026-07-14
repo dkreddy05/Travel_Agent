@@ -10,11 +10,13 @@ from flask import request
 T = TypeVar("T")
 
 
+MAX_PER_PAGE: int = 100
+
+
 @dataclass
 class PaginationParams:
     page: int = 1
     per_page: int = 20
-    max_per_page: int = 100
 
     @classmethod
     def from_request(cls) -> "PaginationParams":
@@ -24,7 +26,7 @@ class PaginationParams:
                 1,
                 min(
                     int(request.args.get("per_page", 20)),
-                    cls.max_per_page,
+                    cls.MAX_PER_PAGE,
                 ),
             )
         except (TypeError, ValueError):

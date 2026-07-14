@@ -36,12 +36,12 @@ def check_ai(config) -> dict:
 
 
 def get_health_report(app, db, redis_client=None) -> dict:
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     report = {
         "status": "ok",
         "version": app.config.get("APP_VERSION", "2.0.0"),
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "checks": {
             "database": check_database(db),
             "ai": check_ai(app.config),

@@ -6,7 +6,7 @@ Destination recommendations endpoint.
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from wanderai.extensions import limiter
-from wanderai.utils.response import success
+from wanderai.utils.response import success, error
 from wanderai.ai.pipeline import run_single_prompt
 
 recommendations_bp = Blueprint("recommendations", __name__)
@@ -52,7 +52,7 @@ def get_recommendations():
     try:
         result = run_single_prompt(prompt, task="destination")
     except Exception as exc:
-        return success({"recommendations": "", "error": str(exc)}), 500
+        return error(f"Recommendation generation failed: {exc}", 500, "AI_ERROR")
 
     return success(
         {

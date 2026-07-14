@@ -33,8 +33,7 @@ def _build_general_agent_node(agent_name: str, prompt_template: str):
     """Factory for simple single-prompt agent nodes."""
 
     def node_fn(state: TravelState) -> TravelState:
-        from flask import current_app
-        from wanderai.ai.client import AIClient
+        from wanderai.ai.pipeline import get_client
         from wanderai.ai.prompts.system import build_system_prompt
 
         user_message = state.get("user_message", "")
@@ -44,7 +43,7 @@ def _build_general_agent_node(agent_name: str, prompt_template: str):
             prompt = f"Destination: {destination}\n\n{prompt}"
 
         try:
-            client = AIClient(current_app.config)
+            client = get_client()
             result = client.complete(
                 messages=[
                     {"role": "system", "content": build_system_prompt()},
@@ -153,6 +152,18 @@ def get_travel_graph():
     return _graph
 
 
+def reset_travel_graph():
+    """Reset the compiled graph singleton. Useful in test teardown."""
+    global _graph
+    _graph = None
+
+
+ALLOWED_EXTRA_KEYS = {
+    "destination", "days", "budget_tier", "travelers",
+    "interests", "transport", "accommodation",
+}
+
+
 def run_agent_graph(
     user_message: str,
     conversation_id: str,
@@ -165,13 +176,14 @@ def run_agent_graph(
     """
     try:
         graph = get_travel_graph()
+        safe_context = {k: v for k, v in (extra_context or {}).items() if k in ALLOWED_EXTRA_KEYS}
         initial_state = TravelState(
             user_id=user_id,
             conversation_id=conversation_id,
             user_message=user_message,
             agent_outputs={},
             errors=[],
-            **(extra_context or {}),
+            **safe_context,
         )
         final_state = graph.invoke(initial_state)
         return {

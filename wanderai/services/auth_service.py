@@ -3,7 +3,7 @@ wanderai/services/auth_service.py
 Authentication business logic — registration, login, OAuth, token management.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask import current_app
 from flask_jwt_extended import create_access_token, create_refresh_token, get_jti
@@ -87,6 +87,9 @@ class AuthService:
         if not user.is_active:
             return {"success": False, "error": "Account is disabled"}
 
+        if not user.email_verified:
+            return {"success": False, "error": "Please verify your email before logging in."}
+
         return self._issue_tokens(user, device_info=device_info, ip=ip)
 
     def login_oauth(
@@ -145,7 +148,7 @@ class AuthService:
         self, refresh_jti: str, user_id: str, device_info: str = "", ip: str = ""
     ) -> dict:
         """Issue a new access token given a valid refresh token JTI."""
-        session = self._sessions.get_by_jti(refresh_jti)
+        session = self._sessions.get_by_refresh_jti(refresh_jti)
         if not session or not session.is_active:
             return {"success": False, "error": "Session expired or revoked"}
 
@@ -158,17 +161,22 @@ class AuthService:
         return self._issue_tokens(user, device_info=device_info, ip=ip)
 
     def logout(self, jti: str) -> None:
-        """Revoke a specific session by JTI."""
-        import redis as redis_lib
+        """Revoke a specific session by JTI — also revokes the refresh token."""
+        from wanderai.extensions import cache
+
+        session = self._sessions.get_by_jti(jti)
+        refresh_jti = session.refresh_jti if session else None
 
         try:
-            r = redis_lib.from_url(current_app.config["REDIS_URL"])
-            ttl = int(current_app.config["JWT_ACCESS_TOKEN_EXPIRES"].total_seconds())
-            r.setex(f"session:revoked:{jti}", ttl, "1")
+            access_ttl = int(current_app.config["JWT_ACCESS_TOKEN_EXPIRES"].total_seconds())
+            cache.set(f"session:revoked:{jti}", "1", timeout=access_ttl)
+
+            if refresh_jti:
+                refresh_ttl = int(current_app.config["JWT_REFRESH_TOKEN_EXPIRES"].total_seconds())
+                cache.set(f"session:revoked:{refresh_jti}", "1", timeout=refresh_ttl)
         except Exception as exc:
             logger.warning("session_revoke_redis_failed", jti=jti, error=str(exc))
 
-        session = self._sessions.get_by_jti(jti)
         if session:
             self._sessions.update(session, is_active=False)
             db.session.commit()
@@ -187,7 +195,7 @@ class AuthService:
         access_jti = get_jti(access_token)
         refresh_jti = get_jti(refresh_token)
 
-        expires_at = datetime.utcnow() + current_app.config["JWT_REFRESH_TOKEN_EXPIRES"]
+        expires_at = datetime.now(timezone.utc) + current_app.config["JWT_REFRESH_TOKEN_EXPIRES"]
 
         try:
             self._sessions.create(

@@ -20,7 +20,7 @@ class BaseRepository(Generic[T]):
         self.model = model_class
 
     def get_by_id(self, record_id: str) -> Optional[T]:
-        return self.model.query.get(record_id)
+        return db.session.get(self.model, record_id)
 
     def get_all(self) -> list[T]:
         return self.model.query.all()

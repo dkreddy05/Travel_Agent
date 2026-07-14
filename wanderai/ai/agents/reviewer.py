@@ -25,8 +25,7 @@ Return the improved, final version only. Do not add meta-commentary.
 
 def reviewer_node(state: TravelState) -> TravelState:
     """Review and merge agent outputs into a final polished response."""
-    from flask import current_app
-    from wanderai.ai.client import AIClient
+    from wanderai.ai.pipeline import get_client
 
     agent_outputs = state.get("agent_outputs", {})
 
@@ -45,7 +44,7 @@ def reviewer_node(state: TravelState) -> TravelState:
     )
 
     try:
-        client = AIClient(current_app.config)
+        client = get_client()
         result = client.complete(
             messages=[
                 {"role": "user", "content": REVIEWER_PROMPT.format(content=merged)},

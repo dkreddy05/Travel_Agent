@@ -19,14 +19,15 @@ def generate_budget():
     """POST /api/v1/budget"""
     data = request.get_json(silent=True) or {}
     destination = data.get("destination", "").strip()
+    travel_style = data.get("travel_style", "mid-range")
 
-    if detect_prompt_injection(destination):
-        return error("Invalid input", 400, "PROMPT_INJECTION")
+    for field_val in [destination, travel_style, str(data.get("days", ""))]:
+        if detect_prompt_injection(field_val):
+            return error("Invalid input", 400, "PROMPT_INJECTION")
 
     days = data.get("days", 7)
     travelers = data.get("travelers", 1)
     budget_total = data.get("budget_total", 0)
-    travel_style = data.get("travel_style", "mid-range")
 
     from wanderai.ai.prompts.budget import BUDGET_USER_TEMPLATE
     from wanderai.ai.pipeline import run_single_prompt

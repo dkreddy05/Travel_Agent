@@ -4,7 +4,7 @@ UserPreference model — replaces Flask session["user_profile"].
 """
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from wanderai.extensions import db
 
 
@@ -28,7 +28,7 @@ class UserPreference(db.Model):
     dream_destinations = db.Column(db.JSON, default=list)
     notes = db.Column(db.Text, nullable=True)
     updated_at = db.Column(
-        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+        db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False
     )
 
     user = db.relationship("User", back_populates="preferences")

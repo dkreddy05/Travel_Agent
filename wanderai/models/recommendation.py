@@ -4,7 +4,7 @@ Recommendation model — persists AI destination recommendations.
 """
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from wanderai.extensions import db
 
 
@@ -24,7 +24,7 @@ class Recommendation(db.Model):
     from_country = db.Column(db.String(100), nullable=True)
     raw_text = db.Column(db.Text, nullable=False)
     structured_json = db.Column(db.JSON, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     def to_dict(self) -> dict:
         return {

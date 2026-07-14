@@ -38,6 +38,9 @@ class SessionRepository(BaseRepository[UserSession]):
     def get_by_jti(self, jti: str) -> Optional[UserSession]:
         return UserSession.query.filter_by(token_jti=jti).first()
 
+    def get_by_refresh_jti(self, jti: str) -> Optional[UserSession]:
+        return UserSession.query.filter_by(refresh_jti=jti).first()
+
     def get_active_sessions(self, user_id: str) -> list[UserSession]:
         return UserSession.query.filter_by(user_id=user_id, is_active=True).all()
 

@@ -4,7 +4,7 @@ Conversation and message endpoints.
 Replaces the old /api/chat with persistent DB-backed conversations.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
@@ -98,7 +98,7 @@ def send_message(conversation_id: str):
         return error("Message contains disallowed content", 400, "PROMPT_INJECTION")
 
     # Save user message
-    _msg_repo.create(
+    user_msg = _msg_repo.create(
         conversation_id=conversation_id,
         role=MessageRole.USER,
         content=message_text,
@@ -140,13 +140,21 @@ def send_message(conversation_id: str):
 
     # Update conversation title from first user message
     if not conv.title:
-        _conv_repo.update(conv, title=message_text[:80])
+        try:
+            _conv_repo.update(conv, title=message_text[:80])
+        except Exception:
+            pass
 
-    db.session.commit()
+    # Wrap the commit in try/except to avoid orphaned user messages
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return error("Failed to save conversation", 500, "SERVER_ERROR")
 
     return success(
         {
             "message": assistant_msg.to_dict(),
-            "timestamp": datetime.utcnow().strftime("%H:%M"),
+            "timestamp": datetime.now(timezone.utc).strftime("%H:%M"),
         }
     )

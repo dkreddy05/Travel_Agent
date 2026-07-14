@@ -3,7 +3,7 @@ wanderai/routes/weather.py
 Weather advice endpoint.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from wanderai.extensions import limiter
@@ -31,13 +31,14 @@ def get_weather_advice():
     """POST /api/v1/weather"""
     data = request.get_json(silent=True) or {}
     destination = data.get("destination", "").strip()
-    month = data.get("month", datetime.utcnow().strftime("%B"))
+    month = data.get("month", datetime.now(timezone.utc).strftime("%B"))
 
     if not destination:
         return error("Destination is required", 400)
 
-    if detect_prompt_injection(destination):
-        return error("Invalid input", 400, "PROMPT_INJECTION")
+    for field_val in [destination, month]:
+        if detect_prompt_injection(field_val):
+            return error("Invalid input", 400, "PROMPT_INJECTION")
 
     # Try real weather API first
     live_weather = {}

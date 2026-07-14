@@ -100,7 +100,7 @@ def _generate_sync(trip, data: dict):
     from wanderai.ai.pipeline import run_single_prompt
     from wanderai.ai.prompts.itinerary import ITINERARY_USER_TEMPLATE
     from jinja2 import Template
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     prompt = Template(ITINERARY_USER_TEMPLATE).render(
         destination=trip.destination,
@@ -139,6 +139,6 @@ def _generate_sync(trip, data: dict):
             "itinerary": itin.to_dict(),
             "destination": trip.destination,
             "days": trip.days,
-            "generated_at": datetime.utcnow().strftime("%B %d, %Y"),
+            "generated_at": datetime.now(timezone.utc).strftime("%B %d, %Y"),
         }
     )

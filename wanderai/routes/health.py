@@ -3,7 +3,7 @@ wanderai/routes/health.py
 Health and readiness check endpoints.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import Blueprint, current_app
 from wanderai.extensions import db
 from wanderai.utils.response import success
@@ -19,7 +19,7 @@ def health():
         {
             "status": "ok",
             "version": current_app.config.get("APP_VERSION", "2.0.0"),
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         }
     )
 

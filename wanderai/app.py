@@ -44,12 +44,12 @@ def create_app(config_name: str | None = None) -> Flask:
         static_folder="../static",
     )
 
+    # ── Configure logging ───────────────────────────────────
+    configure_logging(debug=config_name == "development")
+
     # ── Load configuration ──────────────────────────────────
     cfg = config_map.get(config_name, config_map["default"])
     app.config.from_object(cfg)
-
-    # ── Configure logging ───────────────────────────────────
-    configure_logging(debug=app.debug)
 
     # ── Sentry error tracking ───────────────────────────────
     if app.config.get("SENTRY_DSN"):
@@ -196,16 +196,17 @@ def _configure_jwt_callbacks(app: Flask) -> None:
 
     @jwt.token_in_blocklist_loader
     def check_if_token_revoked(_jwt_header, jwt_data):
-        """Check Redis blocklist for revoked JWT IDs."""
+        """Check Redis blocklist for revoked JWT IDs.
+
+        Reuses the Flask-Caching extension's connection pool instead of
+        opening a new Redis TCP connection on every authenticated request.
+        """
+        from wanderai.extensions import cache
+
         jti = jwt_data.get("jti", "")
         if not jti:
             return True
         try:
-            import redis as redis_lib
-
-            r = redis_lib.from_url(
-                app.config.get("REDIS_URL", "redis://localhost:6379/0")
-            )
-            return r.exists(f"session:revoked:{jti}") == 1
+            return cache.get(f"session:revoked:{jti}") is not None
         except Exception:
             return False  # Fail open if Redis is unavailable

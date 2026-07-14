@@ -93,17 +93,27 @@ class AIClient:
         """
         target_model = model or self.primary_model
         params = {
-            "max_tokens": max_tokens or self.max_tokens,
-            "temperature": temperature or self.temperature,
+            "max_tokens": max_tokens if max_tokens is not None else self.max_tokens,
+            "temperature": temperature if temperature is not None else self.temperature,
         }
 
         # ── Cache check ──────────────────────────────────────
+        # Key only on the last user message + model so that identical
+        # single-prompt calls (itinerary, budget, recommendations) can hit
+        # the cache. Full conversation history is never included because it
+        # would produce a unique key on every multi-turn message and would
+        # risk leaking one user's reply to another user with an identical
+        # history prefix.
         cache_key = None
         if use_cache and self._cache:
             import json
 
+            last_user = next(
+                (m["content"] for m in reversed(messages) if m.get("role") == "user"),
+                "",
+            )
             cache_key = llm_cache_key(
-                json.dumps(messages, sort_keys=True) + target_model
+                json.dumps({"msg": last_user, "model": target_model}, sort_keys=True)
             )
             cached = self._cache.get(cache_key)
             if cached:
@@ -147,19 +157,22 @@ class AIClient:
                             logger.error("llm_fallback_failed", error=str(fallback_exc))
                     text = f"⚠️ WanderAI encountered an error: {error_msg}"
 
+        is_error = text.startswith("⚠️")
+
         latency_ms = round((time.monotonic() - start) * 1000)
         logger.info("llm_call_complete", model=used_model, latency_ms=latency_ms)
 
         result = {
             "text": text,
             "model": used_model,
-            "tokens_used": None,  # watsonx SDK doesn't expose token count easily
+            "tokens_used": None,
             "latency_ms": latency_ms,
             "cached": False,
+            "is_error": is_error,
         }
 
         # ── Cache result ──────────────────────────────────────
-        if cache_key and self._cache and not text.startswith("⚠️"):
+        if cache_key and self._cache and not result.get("is_error"):
             self._cache.set(cache_key, result, timeout=3600)
 
         return result

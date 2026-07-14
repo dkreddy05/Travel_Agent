@@ -9,28 +9,41 @@ logger = get_logger(__name__)
 
 _client = None
 _embedder = None
+_lock = None
 COLLECTION_NAME = "wanderai_knowledge"
+
+
+def _get_lock():
+    global _lock
+    if _lock is None:
+        import threading
+        _lock = threading.Lock()
+    return _lock
 
 
 def _get_client():
     global _client
     if _client is None:
-        from qdrant_client import QdrantClient
-        import os
+        with _get_lock():
+            if _client is None:
+                from qdrant_client import QdrantClient
+                import os
 
-        _client = QdrantClient(
-            url=os.getenv("QDRANT_URL", "http://localhost:6333"),
-            api_key=os.getenv("QDRANT_API_KEY") or None,
-        )
+                _client = QdrantClient(
+                    url=os.getenv("QDRANT_URL", "http://localhost:6333"),
+                    api_key=os.getenv("QDRANT_API_KEY") or None,
+                )
     return _client
 
 
 def _get_embedder():
     global _embedder
     if _embedder is None:
-        from sentence_transformers import SentenceTransformer
+        with _get_lock():
+            if _embedder is None:
+                from sentence_transformers import SentenceTransformer
 
-        _embedder = SentenceTransformer("all-MiniLM-L6-v2")
+                _embedder = SentenceTransformer("all-MiniLM-L6-v2")
     return _embedder
 
 
