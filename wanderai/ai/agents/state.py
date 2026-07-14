@@ -3,6 +3,7 @@ wanderai/ai/agents/state.py
 LangGraph shared state definition for the WanderAI multi-agent system.
 TypedDict ensures type safety across all agent nodes.
 """
+
 from typing import TypedDict
 
 
@@ -11,11 +12,12 @@ class TravelState(TypedDict, total=False):
     Shared state passed between all LangGraph agent nodes.
     'total=False' means all keys are optional — agents only fill in their portion.
     """
+
     # Input context
     user_id: str
     conversation_id: str
     user_message: str
-    intent: str                         # classified by CoordinatorAgent
+    intent: str  # classified by CoordinatorAgent
 
     # Trip parameters (extracted from user message or form)
     destination: str
@@ -27,10 +29,10 @@ class TravelState(TypedDict, total=False):
     accommodation: str
 
     # RAG context
-    rag_context: list[str]              # retrieved knowledge chunks
+    rag_context: list[str]  # retrieved knowledge chunks
 
     # Agent outputs (keyed by agent name)
-    agent_outputs: dict[str, str]       # {agent_name: markdown_output}
+    agent_outputs: dict[str, str]  # {agent_name: markdown_output}
 
     # Tool outputs
     weather_data: dict
@@ -41,7 +43,7 @@ class TravelState(TypedDict, total=False):
     final_response: str
 
     # Error tracking
-    errors: list[str]                  # accumulated using operator.add
+    errors: list[str]  # accumulated using operator.add
 
     # Metadata
     model_used: str

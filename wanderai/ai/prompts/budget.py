@@ -2,6 +2,7 @@
 wanderai/ai/prompts/budget.py
 Budget prompt templates.
 """
+
 from wanderai.ai.prompts.registry import PromptTemplate, register
 
 BUDGET_USER_TEMPLATE = """\
@@ -19,12 +20,14 @@ Provide:
 Include estimated costs in both USD and local currency where possible.
 """
 
-register(PromptTemplate(
-    name="budget",
-    version="2.0.0",
-    description="Travel budget planning",
-    system="",
-    user_template=BUDGET_USER_TEMPLATE,
-    max_tokens=1500,
-    temperature=0.5,
-))
+register(
+    PromptTemplate(
+        name="budget",
+        version="2.0.0",
+        description="Travel budget planning",
+        system="",
+        user_template=BUDGET_USER_TEMPLATE,
+        max_tokens=1500,
+        temperature=0.5,
+    )
+)

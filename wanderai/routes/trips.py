@@ -2,6 +2,7 @@
 wanderai/routes/trips.py
 Trip CRUD endpoints.
 """
+
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from wanderai.extensions import db
@@ -77,8 +78,18 @@ def update_trip(trip_id: str):
         return not_found("Trip")
 
     data = request.get_json(silent=True) or {}
-    allowed = ["title", "days", "travelers", "budget_tier", "status", "interests",
-               "transport_preference", "accommodation_preference", "start_date", "end_date"]
+    allowed = [
+        "title",
+        "days",
+        "travelers",
+        "budget_tier",
+        "status",
+        "interests",
+        "transport_preference",
+        "accommodation_preference",
+        "start_date",
+        "end_date",
+    ]
     updates = {k: data[k] for k in allowed if k in data}
     _trip_repo.update(trip, **updates)
     db.session.commit()

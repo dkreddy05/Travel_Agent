@@ -3,6 +3,7 @@ wanderai/extensions.py
 Flask extension singletons — instantiated here, initialized in create_app().
 Importing from this module avoids circular imports.
 """
+
 import os
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -69,6 +70,7 @@ celery_app.conf.update(
 
 def init_celery(app) -> None:
     """Bind the Celery app to the Flask app context."""
+
     class ContextTask(celery_app.Task):
         def __call__(self, *args, **kwargs):
             with app.app_context():
@@ -76,5 +78,9 @@ def init_celery(app) -> None:
 
     celery_app.Task = ContextTask
     # Sync broker/backend URLs from Flask config in case they differ
-    celery_app.conf.broker_url = app.config.get("CELERY_BROKER_URL", celery_app.conf.broker_url)
-    celery_app.conf.result_backend = app.config.get("CELERY_RESULT_BACKEND", celery_app.conf.result_backend)
+    celery_app.conf.broker_url = app.config.get(
+        "CELERY_BROKER_URL", celery_app.conf.broker_url
+    )
+    celery_app.conf.result_backend = app.config.get(
+        "CELERY_RESULT_BACKEND", celery_app.conf.result_backend
+    )

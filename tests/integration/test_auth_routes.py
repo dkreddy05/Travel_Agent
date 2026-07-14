@@ -2,6 +2,7 @@
 tests/integration/test_auth_routes.py
 Integration tests for auth endpoints.
 """
+
 import json
 
 
@@ -21,7 +22,9 @@ def test_register_duplicate_email(client, db):
     """Registering with an existing email returns 400."""
     payload = json.dumps({"email": "dupe@test.com", "password": "SecurePass1"})
     client.post("/api/v1/auth/register", data=payload, content_type="application/json")
-    response = client.post("/api/v1/auth/register", data=payload, content_type="application/json")
+    response = client.post(
+        "/api/v1/auth/register", data=payload, content_type="application/json"
+    )
     assert response.status_code == 400
     data = response.get_json()
     assert "already registered" in data["error"]["message"].lower()

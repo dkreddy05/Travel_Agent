@@ -3,13 +3,23 @@ wanderai/app.py
 Flask application factory.
 Usage: from wanderai.app import create_app
 """
+
 import os
 import sentry_sdk
 from flask import Flask
 from sentry_sdk.integrations.flask import FlaskIntegration
 
 from wanderai.config import config_map
-from wanderai.extensions import db, migrate, jwt, cache, limiter, cors, mail, init_celery
+from wanderai.extensions import (
+    db,
+    migrate,
+    jwt,
+    cache,
+    limiter,
+    cors,
+    mail,
+    init_celery,
+)
 from wanderai.observability.logger import configure_logging
 from wanderai.observability.metrics import init_metrics
 from wanderai.middleware.correlation_id import init_correlation_id
@@ -57,7 +67,9 @@ def create_app(config_name: str | None = None) -> Flask:
     jwt.init_app(app)
     cache.init_app(app)
     mail.init_app(app)
-    cors.init_app(app, resources={r"/api/*": {"origins": app.config.get("APP_URL", "*")}})
+    cors.init_app(
+        app, resources={r"/api/*": {"origins": app.config.get("APP_URL", "*")}}
+    )
     limiter.init_app(app)
 
     # ── Celery Flask context binding ────────────────────────
@@ -112,7 +124,9 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(trips_bp, url_prefix=f"{api_prefix}/trips")
     app.register_blueprint(itinerary_bp, url_prefix=f"{api_prefix}/itinerary")
     app.register_blueprint(budget_bp, url_prefix=f"{api_prefix}/budget")
-    app.register_blueprint(recommendations_bp, url_prefix=f"{api_prefix}/recommendations")
+    app.register_blueprint(
+        recommendations_bp, url_prefix=f"{api_prefix}/recommendations"
+    )
     app.register_blueprint(profile_bp, url_prefix=f"{api_prefix}/profile")
     app.register_blueprint(weather_bp, url_prefix=f"{api_prefix}/weather")
 
@@ -153,6 +167,7 @@ def _register_error_handlers(app: Flask) -> None:
     @app.errorhandler(500)
     def server_error(e):
         from wanderai.observability.logger import get_logger
+
         get_logger(__name__).error("unhandled_server_error", error=str(e))
         return api_error("Internal server error", 500, "SERVER_ERROR")
 
@@ -164,16 +179,19 @@ def _configure_jwt_callbacks(app: Flask) -> None:
     @jwt.expired_token_loader
     def expired_token(_jwt_header, _jwt_data):
         from wanderai.utils.response import error as api_error
+
         return api_error("Token has expired", 401, "TOKEN_EXPIRED")
 
     @jwt.invalid_token_loader
     def invalid_token(reason):
         from wanderai.utils.response import error as api_error
+
         return api_error(f"Invalid token: {reason}", 401, "TOKEN_INVALID")
 
     @jwt.unauthorized_loader
     def missing_token(reason):
         from wanderai.utils.response import error as api_error
+
         return api_error("Authentication required", 401, "UNAUTHORIZED")
 
     @jwt.token_in_blocklist_loader
@@ -184,7 +202,10 @@ def _configure_jwt_callbacks(app: Flask) -> None:
             return True
         try:
             import redis as redis_lib
-            r = redis_lib.from_url(app.config.get("REDIS_URL", "redis://localhost:6379/0"))
+
+            r = redis_lib.from_url(
+                app.config.get("REDIS_URL", "redis://localhost:6379/0")
+            )
             return r.exists(f"session:revoked:{jti}") == 1
         except Exception:
             return False  # Fail open if Redis is unavailable

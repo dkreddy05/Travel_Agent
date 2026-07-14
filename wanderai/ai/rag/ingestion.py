@@ -3,6 +3,7 @@ wanderai/ai/rag/ingestion.py
 Document ingestion pipeline: read files → chunk → embed → upsert to Qdrant.
 Run with: flask rag ingest
 """
+
 import os
 import uuid
 from pathlib import Path
@@ -12,13 +13,15 @@ from wanderai.observability.logger import get_logger
 logger = get_logger(__name__)
 
 KNOWLEDGE_BASE_DIR = Path(__file__).parent / "knowledge_base"
-CHUNK_SIZE = 512        # chars per chunk
-CHUNK_OVERLAP = 64      # overlap between chunks
+CHUNK_SIZE = 512  # chars per chunk
+CHUNK_OVERLAP = 64  # overlap between chunks
 COLLECTION_NAME = "wanderai_knowledge"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 
 
-def chunk_text(text: str, size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> list[str]:
+def chunk_text(
+    text: str, size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP
+) -> list[str]:
     """Split text into overlapping chunks."""
     chunks = []
     start = 0
@@ -72,7 +75,11 @@ def ingest_all(recreate_collection: bool = False) -> int:
             collection_name=COLLECTION_NAME,
             vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE),
         )
-        logger.info("qdrant_collection_created", collection=COLLECTION_NAME, vector_size=vector_size)
+        logger.info(
+            "qdrant_collection_created",
+            collection=COLLECTION_NAME,
+            vector_size=vector_size,
+        )
 
     total = 0
     batch: list[PointStruct] = []
@@ -81,11 +88,17 @@ def ingest_all(recreate_collection: bool = False) -> int:
         chunks = chunk_text(doc["text"])
         for chunk in chunks:
             vector = embedder.encode(chunk, show_progress_bar=False).tolist()
-            batch.append(PointStruct(
-                id=str(uuid.uuid4()),
-                vector=vector,
-                payload={"text": chunk, "source": doc["source"], "category": doc["category"]},
-            ))
+            batch.append(
+                PointStruct(
+                    id=str(uuid.uuid4()),
+                    vector=vector,
+                    payload={
+                        "text": chunk,
+                        "source": doc["source"],
+                        "category": doc["category"],
+                    },
+                )
+            )
 
             if len(batch) >= 100:
                 client.upsert(collection_name=COLLECTION_NAME, points=batch)

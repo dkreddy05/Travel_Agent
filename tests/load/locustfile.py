@@ -8,6 +8,7 @@ Scenarios:
   - Create conversation + send message
   - Generate budget plan
 """
+
 from locust import HttpUser, task, between
 
 
@@ -55,7 +56,13 @@ class WanderAIUser(HttpUser):
     def get_budget(self):
         self.client.post(
             "/api/v1/budget",
-            json={"destination": "Tokyo", "days": 7, "travelers": 2, "budget_total": 3000, "travel_style": "mid-range"},
+            json={
+                "destination": "Tokyo",
+                "days": 7,
+                "travelers": 2,
+                "budget_total": 3000,
+                "travel_style": "mid-range",
+            },
             headers=self.headers,
             name="budget/generate",
         )

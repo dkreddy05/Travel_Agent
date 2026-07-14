@@ -3,6 +3,7 @@ wanderai/ai/prompts/system.py
 System prompt builder — migrated from AGENT_INSTRUCTIONS in the original app.py.
 Now versioned and template-based.
 """
+
 from wanderai.ai.prompts.registry import PromptTemplate, register
 
 # ─────────────────────────────────────────────────────────
@@ -23,10 +24,18 @@ AGENT_INSTRUCTIONS = {
         "Use bullet points for clarity and add estimated costs where possible."
     ),
     "travel_categories": [
-        "Adventure & Outdoor", "Cultural & Heritage", "Beach & Relaxation",
-        "Food & Culinary", "Wildlife & Nature", "Urban & City Break",
-        "Family & Kids", "Luxury & Wellness", "Budget Backpacking",
-        "Romantic Getaway", "Solo Travel", "Business Travel",
+        "Adventure & Outdoor",
+        "Cultural & Heritage",
+        "Beach & Relaxation",
+        "Food & Culinary",
+        "Wildlife & Nature",
+        "Urban & City Break",
+        "Family & Kids",
+        "Luxury & Wellness",
+        "Budget Backpacking",
+        "Romantic Getaway",
+        "Solo Travel",
+        "Business Travel",
     ],
     "budget_strategy": (
         "Optimize itineraries for the stated budget tier: "
@@ -96,10 +105,12 @@ RESPONSE FORMAT:
 
 
 # Register the system prompt template
-register(PromptTemplate(
-    name="system_prompt",
-    version="2.0.0",
-    description="WanderAI system prompt v2 with RAG support",
-    system=build_system_prompt(),
-    user_template="{{ message }}",
-))
+register(
+    PromptTemplate(
+        name="system_prompt",
+        version="2.0.0",
+        description="WanderAI system prompt v2 with RAG support",
+        system=build_system_prompt(),
+        user_template="{{ message }}",
+    )
+)

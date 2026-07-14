@@ -2,6 +2,7 @@
 wanderai/tasks/cleanup_tasks.py
 Scheduled maintenance tasks.
 """
+
 from wanderai.tasks import celery
 
 
@@ -15,6 +16,7 @@ def cleanup_expired_sessions():
     app = create_app()
     with app.app_context():
         from wanderai.models.user import UserSession
+
         expired = UserSession.query.filter(
             UserSession.expires_at < datetime.utcnow(),
             ~UserSession.is_active,
@@ -22,5 +24,6 @@ def cleanup_expired_sessions():
         db.session.commit()
 
         from wanderai.observability.logger import get_logger
+
         get_logger(__name__).info("sessions_cleaned", count=expired)
         return {"cleaned_sessions": expired}

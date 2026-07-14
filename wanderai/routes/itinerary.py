@@ -2,6 +2,7 @@
 wanderai/routes/itinerary.py
 Itinerary generation — supports both sync and async (Celery) modes.
 """
+
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from wanderai.extensions import db, limiter
@@ -52,13 +53,16 @@ def generate_itinerary():
     # Try async Celery task
     try:
         from wanderai.tasks.itinerary_tasks import generate_itinerary_task
+
         task = generate_itinerary_task.delay(trip.id, user_id)
-        return created({
-            "task_id": task.id,
-            "trip_id": trip.id,
-            "status": "processing",
-            "message": "Itinerary generation started. Poll /api/v1/itinerary/status/{task_id}",
-        })
+        return created(
+            {
+                "task_id": task.id,
+                "trip_id": trip.id,
+                "status": "processing",
+                "message": "Itinerary generation started. Poll /api/v1/itinerary/status/{task_id}",
+            }
+        )
     except Exception:
         # Fallback: synchronous generation (dev mode)
         return _generate_sync(trip, data)
@@ -70,13 +74,16 @@ def get_task_status(task_id: str):
     """GET /api/v1/itinerary/status/{task_id} — poll Celery task."""
     try:
         from celery.result import AsyncResult
+
         task = AsyncResult(task_id)
         if task.state == "SUCCESS":
             return success({"status": "completed", "result": task.result})
         elif task.state == "FAILURE":
             return success({"status": "failed", "error": str(task.result)})
         else:
-            return success({"status": task.state.lower(), "progress": getattr(task, "info", {})})
+            return success(
+                {"status": task.state.lower(), "progress": getattr(task, "info", {})}
+            )
     except Exception as exc:
         return error(f"Could not retrieve task status: {exc}", 404)
 
@@ -92,8 +99,16 @@ def _generate_sync(trip, data: dict):
     prompt = Template(ITINERARY_USER_TEMPLATE).render(
         destination=trip.destination,
         days=trip.days,
-        budget=trip.budget_tier.value if trip.budget_tier else data.get("budget", "mid-range"),
-        interests=", ".join(trip.interests) if trip.interests else data.get("interests", "general"),
+        budget=(
+            trip.budget_tier.value
+            if trip.budget_tier
+            else data.get("budget", "mid-range")
+        ),
+        interests=(
+            ", ".join(trip.interests)
+            if trip.interests
+            else data.get("interests", "general")
+        ),
         travelers=trip.travelers,
         transport=trip.transport_preference or "flexible",
         accommodation=trip.accommodation_preference or "hotel",
@@ -112,10 +127,12 @@ def _generate_sync(trip, data: dict):
     )
     db.session.commit()
 
-    return success({
-        "trip_id": trip.id,
-        "itinerary": itin.to_dict(),
-        "destination": trip.destination,
-        "days": trip.days,
-        "generated_at": datetime.utcnow().strftime("%B %d, %Y"),
-    })
+    return success(
+        {
+            "trip_id": trip.id,
+            "itinerary": itin.to_dict(),
+            "destination": trip.destination,
+            "days": trip.days,
+            "generated_at": datetime.utcnow().strftime("%B %d, %Y"),
+        }
+    )

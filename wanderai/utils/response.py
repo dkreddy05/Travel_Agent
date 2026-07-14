@@ -10,6 +10,7 @@ All API routes return this envelope:
     "meta": {"correlation_id": "...", "version": "2.0.0"}
   }
 """
+
 from flask import jsonify, g, current_app
 
 
@@ -29,7 +30,12 @@ def created(data=None, meta: dict | None = None) -> tuple:
     return success(data=data, status_code=201, meta=meta)
 
 
-def error(message: str, status_code: int = 400, code: str | None = None, details: dict | None = None) -> tuple:
+def error(
+    message: str,
+    status_code: int = 400,
+    code: str | None = None,
+    details: dict | None = None,
+) -> tuple:
     """Return an error JSON response."""
     payload = {
         "success": False,

@@ -2,6 +2,7 @@
 wanderai/repositories/trip_repository.py
 Trip and Itinerary data access.
 """
+
 from typing import Optional
 from wanderai.models.trip import Trip, Itinerary, TripStatus
 from wanderai.repositories.base import BaseRepository

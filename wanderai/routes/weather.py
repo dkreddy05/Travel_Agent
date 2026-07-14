@@ -2,6 +2,7 @@
 wanderai/routes/weather.py
 Weather advice endpoint.
 """
+
 from datetime import datetime
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -43,6 +44,7 @@ def get_weather_advice():
     try:
         from wanderai.ai.tools.weather_tool import get_weather
         from wanderai.extensions import cache
+
         live_weather = get_weather(destination, month, cache=cache)
     except Exception:
         pass
@@ -56,10 +58,12 @@ def get_weather_advice():
         )
 
     result = run_single_prompt(prompt, task="weather")
-    return success({
-        "weather_advice": result["text"],
-        "destination": destination,
-        "month": month,
-        "live_data": live_weather if not live_weather.get("error") else None,
-        "cached": result.get("cached", False),
-    })
+    return success(
+        {
+            "weather_advice": result["text"],
+            "destination": destination,
+            "month": month,
+            "live_data": live_weather if not live_weather.get("error") else None,
+            "cached": result.get("cached", False),
+        }
+    )

@@ -3,13 +3,17 @@ wanderai/routes/chat.py
 Conversation and message endpoints.
 Replaces the old /api/chat with persistent DB-backed conversations.
 """
+
 from datetime import datetime
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from wanderai.extensions import db
 from wanderai.models.conversation import MessageRole, ContextMode
-from wanderai.repositories.conversation_repository import ConversationRepository, MessageRepository
+from wanderai.repositories.conversation_repository import (
+    ConversationRepository,
+    MessageRepository,
+)
 from wanderai.utils.response import success, created, error, not_found
 from wanderai.utils.pagination import PaginationParams
 from wanderai.utils.validators import detect_prompt_injection, validate_message_length
@@ -103,6 +107,7 @@ def send_message(conversation_id: str):
     # Run AI pipeline
     try:
         from wanderai.ai.pipeline import run_chat
+
         extra_context = data.get("context", {})
         result = run_chat(
             user_message=message_text,
@@ -116,6 +121,7 @@ def send_message(conversation_id: str):
         latency_ms = result.get("latency_ms")
     except Exception as exc:
         from wanderai.observability.logger import get_logger
+
         get_logger(__name__).error("chat_pipeline_error", error=str(exc))
         reply_text = f"⚠️ WanderAI encountered an error: {exc}"
         model_used = ""
@@ -138,7 +144,9 @@ def send_message(conversation_id: str):
 
     db.session.commit()
 
-    return success({
-        "message": assistant_msg.to_dict(),
-        "timestamp": datetime.utcnow().strftime("%H:%M"),
-    })
+    return success(
+        {
+            "message": assistant_msg.to_dict(),
+            "timestamp": datetime.utcnow().strftime("%H:%M"),
+        }
+    )

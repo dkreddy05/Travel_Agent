@@ -3,6 +3,7 @@ wanderai/ai/client.py
 LiteLLM-based model-agnostic AI client.
 Supports IBM watsonx.ai as primary, any LiteLLM provider as fallback.
 """
+
 import time
 from typing import Optional
 
@@ -12,7 +13,9 @@ from wanderai.utils.cache_keys import llm_response as llm_cache_key
 logger = get_logger(__name__)
 
 
-def _get_watsonx_messages_completion(messages: list[dict], model_id: str, **params) -> str:
+def _get_watsonx_messages_completion(
+    messages: list[dict], model_id: str, **params
+) -> str:
     """
     Direct IBM watsonx.ai call using the existing ibm-watsonx-ai SDK.
     Used as primary path when LiteLLM watsonx adapter is unavailable.
@@ -26,7 +29,9 @@ def _get_watsonx_messages_completion(messages: list[dict], model_id: str, **para
         url=os.getenv("WATSONX_URL", ""),
         api_key=os.getenv("WATSONX_API_KEY", ""),
     )
-    client = APIClient(credentials=credentials, project_id=os.getenv("WATSONX_PROJECT_ID", ""))
+    client = APIClient(
+        credentials=credentials, project_id=os.getenv("WATSONX_PROJECT_ID", "")
+    )
     model = ModelInference(
         model_id=model_id,
         api_client=client,
@@ -42,9 +47,8 @@ def _get_watsonx_messages_completion(messages: list[dict], model_id: str, **para
 
     # Build prompt string (auto-detects model format)
     from wanderai.ai.model_router import build_prompt_for_model
-    system_prompt = next(
-        (m["content"] for m in messages if m["role"] == "system"), ""
-    )
+
+    system_prompt = next((m["content"] for m in messages if m["role"] == "system"), "")
     conv_messages = [m for m in messages if m["role"] != "system"]
     prompt_str = build_prompt_for_model(model_id, system_prompt, conv_messages)
 
@@ -59,7 +63,9 @@ class AIClient:
     """
 
     def __init__(self, config: dict):
-        self.primary_model = config.get("AI_PRIMARY_MODEL", "meta-llama/llama-3-3-70b-instruct")
+        self.primary_model = config.get(
+            "AI_PRIMARY_MODEL", "meta-llama/llama-3-3-70b-instruct"
+        )
         self.fallback_model = config.get("AI_FALLBACK_MODEL", "")
         self.max_tokens = config.get("AI_MAX_TOKENS", 1500)
         self.temperature = config.get("AI_TEMPERATURE", 0.7)
@@ -95,7 +101,10 @@ class AIClient:
         cache_key = None
         if use_cache and self._cache:
             import json
-            cache_key = llm_cache_key(json.dumps(messages, sort_keys=True) + target_model)
+
+            cache_key = llm_cache_key(
+                json.dumps(messages, sort_keys=True) + target_model
+            )
             cached = self._cache.get(cache_key)
             if cached:
                 logger.info("llm_cache_hit", model=target_model)
@@ -109,17 +118,29 @@ class AIClient:
 
         for attempt in range(1, self.max_retries + 1):
             try:
-                text = _get_watsonx_messages_completion(messages, target_model, **params)
+                text = _get_watsonx_messages_completion(
+                    messages, target_model, **params
+                )
                 break
             except Exception as exc:
                 error_msg = str(exc)
-                logger.warning("llm_call_failed", attempt=attempt, model=target_model, error=error_msg)
+                logger.warning(
+                    "llm_call_failed",
+                    attempt=attempt,
+                    model=target_model,
+                    error=error_msg,
+                )
                 if attempt == self.max_retries:
                     # Try fallback model
                     if self.fallback_model:
                         try:
-                            logger.info("llm_fallback_attempt", fallback_model=self.fallback_model)
-                            text = _get_watsonx_messages_completion(messages, self.fallback_model, **params)
+                            logger.info(
+                                "llm_fallback_attempt",
+                                fallback_model=self.fallback_model,
+                            )
+                            text = _get_watsonx_messages_completion(
+                                messages, self.fallback_model, **params
+                            )
                             used_model = self.fallback_model
                             break
                         except Exception as fallback_exc:
@@ -132,7 +153,7 @@ class AIClient:
         result = {
             "text": text,
             "model": used_model,
-            "tokens_used": None,    # watsonx SDK doesn't expose token count easily
+            "tokens_used": None,  # watsonx SDK doesn't expose token count easily
             "latency_ms": latency_ms,
             "cached": False,
         }

@@ -3,6 +3,7 @@ wanderai/ai/agents/graph.py
 LangGraph StateGraph definition for the WanderAI multi-agent system.
 Compiles the full agent graph with conditional routing based on intent.
 """
+
 from langgraph.graph import StateGraph, END
 from wanderai.ai.agents.state import TravelState
 from wanderai.ai.agents.coordinator import coordinator_node
@@ -30,6 +31,7 @@ def _route_by_intent(state: TravelState) -> str:
 
 def _build_general_agent_node(agent_name: str, prompt_template: str):
     """Factory for simple single-prompt agent nodes."""
+
     def node_fn(state: TravelState) -> TravelState:
         from flask import current_app
         from wanderai.ai.client import AIClient
@@ -74,35 +76,35 @@ def build_travel_graph() -> StateGraph:
         "budget_agent",
         _build_general_agent_node(
             "budget_agent",
-            "You are a travel budget expert. Provide a detailed budget breakdown."
+            "You are a travel budget expert. Provide a detailed budget breakdown.",
         ),
     )
     graph.add_node(
         "weather_agent",
         _build_general_agent_node(
             "weather_agent",
-            "You are a climate and weather expert. Provide detailed seasonal travel advice."
+            "You are a climate and weather expert. Provide detailed seasonal travel advice.",
         ),
     )
     graph.add_node(
         "safety_agent",
         _build_general_agent_node(
             "safety_agent",
-            "You are a travel safety expert. Provide current advisories and safety tips."
+            "You are a travel safety expert. Provide current advisories and safety tips.",
         ),
     )
     graph.add_node(
         "destination_agent",
         _build_general_agent_node(
             "destination_agent",
-            "You are a destination expert. Recommend and describe travel destinations."
+            "You are a destination expert. Recommend and describe travel destinations.",
         ),
     )
     graph.add_node(
         "packing_agent",
         _build_general_agent_node(
             "packing_agent",
-            "You are a packing and logistics expert. Create detailed packing lists."
+            "You are a packing and logistics expert. Create detailed packing lists.",
         ),
     )
 
@@ -124,7 +126,14 @@ def build_travel_graph() -> StateGraph:
     )
 
     # All agents flow to reviewer
-    for agent in ["planner", "budget_agent", "weather_agent", "safety_agent", "destination_agent", "packing_agent"]:
+    for agent in [
+        "planner",
+        "budget_agent",
+        "weather_agent",
+        "safety_agent",
+        "destination_agent",
+        "packing_agent",
+    ]:
         graph.add_edge(agent, "reviewer")
 
     graph.add_edge("reviewer", END)
@@ -175,5 +184,11 @@ def run_agent_graph(
         # LangGraph not installed — fall back to direct pipeline
         logger.info("langgraph_unavailable_fallback")
         from wanderai.ai.pipeline import run_chat
+
         result = run_chat(user_message, conversation_id, extra_context=extra_context)
-        return {"text": result["text"], "intent": "general", "agent_outputs": {}, "errors": []}
+        return {
+            "text": result["text"],
+            "intent": "general",
+            "agent_outputs": {},
+            "errors": [],
+        }

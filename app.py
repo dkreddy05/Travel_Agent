@@ -2,6 +2,7 @@
 app.py — Thin entry point (development only).
 Production uses wsgi.py with Gunicorn.
 """
+
 import os
 from wanderai.app import create_app
 from wanderai.ai.pipeline import init_pipeline
@@ -13,6 +14,7 @@ app = create_app(config_name)
 with app.app_context():
     try:
         from wanderai.extensions import cache
+
         init_pipeline(app.config, cache=cache)
     except Exception as e:
         print(f"⚠️  AI pipeline init warning: {e}")

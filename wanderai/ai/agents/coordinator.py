@@ -3,6 +3,7 @@ wanderai/ai/agents/coordinator.py
 CoordinatorAgent — classifies user intent and routes to specialized agents.
 This is the entry node for every LangGraph execution.
 """
+
 from wanderai.ai.agents.state import TravelState
 from wanderai.observability.logger import get_logger
 
@@ -45,7 +46,15 @@ def coordinator_node(state: TravelState) -> TravelState:
         )
         intent = result["text"].strip().lower().split()[0]
         # Validate against allowed intents
-        allowed = {"itinerary", "budget", "weather", "safety", "destination", "packing", "general"}
+        allowed = {
+            "itinerary",
+            "budget",
+            "weather",
+            "safety",
+            "destination",
+            "packing",
+            "general",
+        }
         if intent not in allowed:
             intent = "general"
     except Exception as exc:

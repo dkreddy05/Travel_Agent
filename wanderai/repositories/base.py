@@ -3,6 +3,7 @@ wanderai/repositories/base.py
 Generic base repository — all CRUD operations using SQLAlchemy.
 Domain repositories extend this and add query-specific methods.
 """
+
 from typing import TypeVar, Generic, Type, Optional
 from wanderai.extensions import db
 

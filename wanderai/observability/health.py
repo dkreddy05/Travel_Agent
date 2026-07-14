@@ -2,6 +2,7 @@
 wanderai/observability/health.py
 Health and readiness check logic.
 """
+
 from wanderai.observability.logger import get_logger
 
 logger = get_logger(__name__)
@@ -36,6 +37,7 @@ def check_ai(config) -> dict:
 
 def get_health_report(app, db, redis_client=None) -> dict:
     from datetime import datetime
+
     report = {
         "status": "ok",
         "version": app.config.get("APP_VERSION", "2.0.0"),

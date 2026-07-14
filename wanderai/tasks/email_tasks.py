@@ -2,13 +2,20 @@
 wanderai/tasks/email_tasks.py
 Email delivery Celery tasks.
 """
+
 from wanderai.tasks import celery
 
 
-@celery.task(bind=True, max_retries=5, default_retry_delay=60, name="tasks.send_verification_email")
+@celery.task(
+    bind=True,
+    max_retries=5,
+    default_retry_delay=60,
+    name="tasks.send_verification_email",
+)
 def send_verification_email(self, user_id: str):
     """Send email verification link to user."""
     from wanderai.app import create_app
+
     app = create_app()
     with app.app_context():
         from wanderai.repositories.user_repository import UserRepository
@@ -42,6 +49,7 @@ def send_verification_email(self, user_id: str):
 def send_password_reset_email(self, user_id: str, reset_token: str):
     """Send password reset email."""
     from wanderai.app import create_app
+
     app = create_app()
     with app.app_context():
         from wanderai.repositories.user_repository import UserRepository

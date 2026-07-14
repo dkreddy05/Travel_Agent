@@ -3,12 +3,17 @@ wanderai/ai/pipeline.py
 Main AI pipeline orchestrator.
 Stages: Memory → RAG → PromptBuilder → ModelRouter → LLMClient → Validation → Persist
 """
+
 import time
 from typing import Optional
 
 from wanderai.ai.client import AIClient
 from wanderai.ai.memory import ConversationMemory
-from wanderai.ai.output_validator import validate_response, clean_response, extract_json_block
+from wanderai.ai.output_validator import (
+    validate_response,
+    clean_response,
+    extract_json_block,
+)
 from wanderai.ai.prompts.system import build_system_prompt
 from wanderai.ai.model_router import select_model_for_task
 from wanderai.observability.logger import get_logger
@@ -73,6 +78,7 @@ def run_chat(
 
     # ── Stage 5: Model routing ───────────────────────────────
     from flask import current_app
+
     model = select_model_for_task(task, user_role, current_app.config)
 
     # ── Stage 6: LLM call ────────────────────────────────────
@@ -122,6 +128,7 @@ def run_single_prompt(
     client = get_client()
 
     from flask import current_app
+
     system_prompt = build_system_prompt()
 
     messages = [
@@ -157,6 +164,7 @@ def _retrieve_rag_context(query: str, context: dict | None = None) -> list[str]:
     """
     try:
         from wanderai.ai.rag.retriever import retrieve
+
         destination = (context or {}).get("destination", "")
         search_query = f"{destination} {query}".strip() if destination else query
         chunks = retrieve(search_query, top_k=4)

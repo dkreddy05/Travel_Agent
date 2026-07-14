@@ -2,6 +2,7 @@
 wanderai/repositories/user_repository.py
 User data access — auth lookups, OAuth upsert, session management.
 """
+
 from typing import Optional
 from wanderai.models.user import User, UserSession
 from wanderai.repositories.base import BaseRepository
@@ -40,6 +41,8 @@ class SessionRepository(BaseRepository[UserSession]):
 
     def revoke_all_user_sessions(self, user_id: str) -> int:
         """Revoke all active sessions for a user. Returns count revoked."""
-        count = UserSession.query.filter_by(user_id=user_id, is_active=True).update({"is_active": False})
+        count = UserSession.query.filter_by(user_id=user_id, is_active=True).update(
+            {"is_active": False}
+        )
         db.session.flush()
         return count

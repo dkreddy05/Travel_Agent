@@ -2,6 +2,7 @@
 wanderai/routes/profile.py
 User profile and preferences endpoints.
 """
+
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from wanderai.extensions import db
@@ -60,14 +61,20 @@ def update_preferences():
 
     if not pref:
         from wanderai.models.preference import UserPreference
+
         pref = UserPreference(user_id=user_id)
         db.session.add(pref)
 
     allowed = [
-        "budget_tier", "trip_styles", "dietary",
-        "home_country", "passport_country",
-        "preferred_transport", "preferred_accommodation",
-        "dream_destinations", "notes",
+        "budget_tier",
+        "trip_styles",
+        "dietary",
+        "home_country",
+        "passport_country",
+        "preferred_transport",
+        "preferred_accommodation",
+        "dream_destinations",
+        "notes",
     ]
     for key in allowed:
         if key in data:

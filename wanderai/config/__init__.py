@@ -1,4 +1,5 @@
 """wanderai/config — Configuration registry."""
+
 from .base import BaseConfig
 from .development import DevelopmentConfig
 from .production import ProductionConfig

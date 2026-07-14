@@ -3,10 +3,12 @@ migrations/env.py
 Alembic environment configuration.
 Imports all models so autogenerate detects schema changes.
 """
+
 from logging.config import fileConfig
 import os
 
 from dotenv import load_dotenv
+
 load_dotenv()  # Must run before app imports so DATABASE_URL etc. are available
 
 from sqlalchemy import engine_from_config, pool  # noqa: E402

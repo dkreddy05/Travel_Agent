@@ -2,6 +2,7 @@
 wanderai/routes/recommendations.py
 Destination recommendations endpoint.
 """
+
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from wanderai.extensions import limiter
@@ -49,8 +50,10 @@ def get_recommendations():
     )
 
     result = run_single_prompt(prompt, task="destination")
-    return success({
-        "recommendations": result["text"],
-        "cached": result.get("cached", False),
-        "latency_ms": result.get("latency_ms"),
-    })
+    return success(
+        {
+            "recommendations": result["text"],
+            "cached": result.get("cached", False),
+            "latency_ms": result.get("latency_ms"),
+        }
+    )

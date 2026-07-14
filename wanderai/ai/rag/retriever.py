@@ -2,6 +2,7 @@
 wanderai/ai/rag/retriever.py
 Qdrant-based semantic retrieval for the RAG pipeline.
 """
+
 from wanderai.observability.logger import get_logger
 
 logger = get_logger(__name__)
@@ -16,6 +17,7 @@ def _get_client():
     if _client is None:
         from qdrant_client import QdrantClient
         import os
+
         _client = QdrantClient(
             url=os.getenv("QDRANT_URL", "http://localhost:6333"),
             api_key=os.getenv("QDRANT_API_KEY") or None,
@@ -27,6 +29,7 @@ def _get_embedder():
     global _embedder
     if _embedder is None:
         from sentence_transformers import SentenceTransformer
+
         _embedder = SentenceTransformer("all-MiniLM-L6-v2")
     return _embedder
 

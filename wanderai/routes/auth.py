@@ -2,6 +2,7 @@
 wanderai/routes/auth.py
 Authentication endpoints — register, login, OAuth, refresh, logout, verify email.
 """
+
 from flask import Blueprint, request, current_app, redirect
 from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity
 from wanderai.services.auth_service import AuthService
@@ -29,7 +30,9 @@ def register():
         return error(result["error"], 400, "REGISTRATION_FAILED")
 
     return created(
-        data={"message": "Registration successful. Please check your email to verify your account."},
+        data={
+            "message": "Registration successful. Please check your email to verify your account."
+        },
     )
 
 
@@ -47,15 +50,19 @@ def login():
     device_info = request.headers.get("User-Agent", "")[:500]
     ip = request.remote_addr or ""
 
-    result = _auth_service.login(email=email, password=password, device_info=device_info, ip=ip)
+    result = _auth_service.login(
+        email=email, password=password, device_info=device_info, ip=ip
+    )
     if not result["success"]:
         return error(result["error"], 401, "AUTH_FAILED")
 
-    return success({
-        "access_token": result["access_token"],
-        "refresh_token": result["refresh_token"],
-        "user": result["user"],
-    })
+    return success(
+        {
+            "access_token": result["access_token"],
+            "refresh_token": result["refresh_token"],
+            "user": result["user"],
+        }
+    )
 
 
 @auth_bp.post("/refresh")
@@ -74,10 +81,12 @@ def refresh():
     if not result["success"]:
         return error(result["error"], 401, "REFRESH_FAILED")
 
-    return success({
-        "access_token": result["access_token"],
-        "refresh_token": result["refresh_token"],
-    })
+    return success(
+        {
+            "access_token": result["access_token"],
+            "refresh_token": result["refresh_token"],
+        }
+    )
 
 
 @auth_bp.post("/logout")
@@ -106,6 +115,7 @@ def verify_email(token: str):
 def get_me():
     """GET /api/v1/auth/me — get current user profile."""
     from wanderai.repositories.user_repository import UserRepository
+
     user_id = get_jwt_identity()
     user = UserRepository().get_by_id(user_id)
     if not user:

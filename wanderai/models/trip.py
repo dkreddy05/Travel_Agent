@@ -2,6 +2,7 @@
 wanderai/models/trip.py
 Trip, Destination, Itinerary models.
 """
+
 import uuid
 from datetime import datetime
 from enum import Enum as PyEnum
@@ -26,7 +27,12 @@ class Trip(db.Model):
     __tablename__ = "trips"
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = db.Column(db.String(36), db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = db.Column(
+        db.String(36),
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     title = db.Column(db.String(255), nullable=True)
     destination = db.Column(db.String(255), nullable=False)
     country_code = db.Column(db.String(3), nullable=True)
@@ -42,17 +48,23 @@ class Trip(db.Model):
     accommodation_preference = db.Column(db.String(100), nullable=True)
     status = db.Column(db.Enum(TripStatus), default=TripStatus.DRAFT, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
 
     # Relationships
     user = db.relationship("User", back_populates="trips")
-    itinerary = db.relationship("Itinerary", back_populates="trip", uselist=False, cascade="all, delete-orphan")
-    budget = db.relationship("Budget", back_populates="trip", uselist=False, cascade="all, delete-orphan")
-    conversations = db.relationship("Conversation", back_populates="trip", lazy="dynamic")
-
-    __table_args__ = (
-        db.Index("ix_trips_user_id_status", "user_id", "status"),
+    itinerary = db.relationship(
+        "Itinerary", back_populates="trip", uselist=False, cascade="all, delete-orphan"
     )
+    budget = db.relationship(
+        "Budget", back_populates="trip", uselist=False, cascade="all, delete-orphan"
+    )
+    conversations = db.relationship(
+        "Conversation", back_populates="trip", lazy="dynamic"
+    )
+
+    __table_args__ = (db.Index("ix_trips_user_id_status", "user_id", "status"),)
 
     def to_dict(self) -> dict:
         return {
@@ -78,14 +90,21 @@ class Itinerary(db.Model):
     __tablename__ = "itineraries"
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    trip_id = db.Column(db.String(36), db.ForeignKey("trips.id", ondelete="CASCADE"), unique=True, nullable=False)
+    trip_id = db.Column(
+        db.String(36),
+        db.ForeignKey("trips.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
+    )
     raw_text = db.Column(db.Text, nullable=False)
     structured_json = db.Column(db.JSON, nullable=True)
     model_used = db.Column(db.String(100), nullable=True)
     prompt_version = db.Column(db.String(20), nullable=True)
     generation_time_ms = db.Column(db.Integer, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
 
     trip = db.relationship("Trip", back_populates="itinerary")
 

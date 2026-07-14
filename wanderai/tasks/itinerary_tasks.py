@@ -2,10 +2,13 @@
 wanderai/tasks/itinerary_tasks.py
 Celery background tasks for itinerary generation.
 """
+
 from wanderai.tasks import celery
 
 
-@celery.task(bind=True, max_retries=3, default_retry_delay=30, name="tasks.generate_itinerary")
+@celery.task(
+    bind=True, max_retries=3, default_retry_delay=30, name="tasks.generate_itinerary"
+)
 def generate_itinerary_task(self, trip_id: str, user_id: str) -> dict:
     """
     Async itinerary generation task.
@@ -16,7 +19,10 @@ def generate_itinerary_task(self, trip_id: str, user_id: str) -> dict:
     from wanderai.extensions import db
     from wanderai.ai.pipeline import run_single_prompt
     from wanderai.ai.prompts.itinerary import ITINERARY_USER_TEMPLATE
-    from wanderai.repositories.trip_repository import TripRepository, ItineraryRepository
+    from wanderai.repositories.trip_repository import (
+        TripRepository,
+        ItineraryRepository,
+    )
     from jinja2 import Template
 
     app = create_app()
@@ -29,7 +35,9 @@ def generate_itinerary_task(self, trip_id: str, user_id: str) -> dict:
             return {"error": "Trip not found"}
 
         try:
-            self.update_state(state="PROGRESS", meta={"step": "Generating itinerary", "progress": 10})
+            self.update_state(
+                state="PROGRESS", meta={"step": "Generating itinerary", "progress": 10}
+            )
 
             prompt = Template(ITINERARY_USER_TEMPLATE).render(
                 destination=trip.destination,
@@ -41,13 +49,17 @@ def generate_itinerary_task(self, trip_id: str, user_id: str) -> dict:
                 accommodation=trip.accommodation_preference or "hotel",
             )
 
-            self.update_state(state="PROGRESS", meta={"step": "Calling AI model", "progress": 30})
+            self.update_state(
+                state="PROGRESS", meta={"step": "Calling AI model", "progress": 30}
+            )
 
             start = time.monotonic()
             result = run_single_prompt(prompt, task="itinerary", max_tokens=2000)
             gen_ms = round((time.monotonic() - start) * 1000)
 
-            self.update_state(state="PROGRESS", meta={"step": "Saving to database", "progress": 90})
+            self.update_state(
+                state="PROGRESS", meta={"step": "Saving to database", "progress": 90}
+            )
 
             itin = itin_repo.upsert(
                 trip_id=trip.id,

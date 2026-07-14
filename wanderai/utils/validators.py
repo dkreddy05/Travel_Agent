@@ -2,15 +2,30 @@
 wanderai/utils/validators.py
 Shared input validators used by schemas and services.
 """
+
 import re
 import bleach
 
-
 # Allowed HTML tags for markdown rendering (used to sanitize AI output)
 ALLOWED_TAGS = [
-    "p", "br", "strong", "em", "ul", "ol", "li",
-    "h1", "h2", "h3", "h4", "h5", "h6",
-    "code", "pre", "blockquote", "hr", "a",
+    "p",
+    "br",
+    "strong",
+    "em",
+    "ul",
+    "ol",
+    "li",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "code",
+    "pre",
+    "blockquote",
+    "hr",
+    "a",
 ]
 ALLOWED_ATTRIBUTES = {"a": ["href", "title"]}
 
@@ -28,9 +43,7 @@ PROMPT_INJECTION_PATTERNS = [
     r"disregard\s+(all\s+)?previous",
 ]
 
-_injection_regex = re.compile(
-    "|".join(PROMPT_INJECTION_PATTERNS), re.IGNORECASE
-)
+_injection_regex = re.compile("|".join(PROMPT_INJECTION_PATTERNS), re.IGNORECASE)
 
 
 def sanitize_html(text: str) -> str:

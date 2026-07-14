@@ -2,6 +2,8 @@
 tests/integration/test_health_routes.py
 Integration tests for health check endpoints.
 """
+
+
 def test_health_check(client):
     """GET /api/v1/health should return 200."""
     response = client.get("/api/v1/health")

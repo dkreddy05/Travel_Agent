@@ -2,6 +2,7 @@
 wanderai/models/recommendation.py
 Recommendation model — persists AI destination recommendations.
 """
+
 import uuid
 from datetime import datetime
 from wanderai.extensions import db
@@ -11,7 +12,12 @@ class Recommendation(db.Model):
     __tablename__ = "recommendations"
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = db.Column(db.String(36), db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = db.Column(
+        db.String(36),
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     interests = db.Column(db.JSON, default=list)
     budget_tier = db.Column(db.String(20), nullable=True)
     season = db.Column(db.String(20), nullable=True)

@@ -2,6 +2,7 @@
 wanderai/utils/pagination.py
 Cursor-based and offset pagination helpers.
 """
+
 from dataclasses import dataclass
 from typing import TypeVar, Generic
 from flask import request
@@ -61,5 +62,9 @@ class PaginatedResult(Generic[T]):
 def paginate_query(query, params: PaginationParams) -> PaginatedResult:
     """Apply pagination to a SQLAlchemy query."""
     total = query.count()
-    items = query.offset((params.page - 1) * params.per_page).limit(params.per_page).all()
-    return PaginatedResult(items=items, total=total, page=params.page, per_page=params.per_page)
+    items = (
+        query.offset((params.page - 1) * params.per_page).limit(params.per_page).all()
+    )
+    return PaginatedResult(
+        items=items, total=total, page=params.page, per_page=params.per_page
+    )

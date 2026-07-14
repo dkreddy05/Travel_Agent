@@ -2,6 +2,7 @@
 wanderai/routes/budget.py
 Budget planning endpoint.
 """
+
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from wanderai.extensions import limiter
@@ -40,10 +41,12 @@ def generate_budget():
     )
 
     result = run_single_prompt(prompt, task="budget")
-    return success({
-        "budget_plan": result["text"],
-        "destination": destination,
-        "total_budget": budget_total,
-        "model": result.get("model"),
-        "latency_ms": result.get("latency_ms"),
-    })
+    return success(
+        {
+            "budget_plan": result["text"],
+            "destination": destination,
+            "total_budget": budget_total,
+            "model": result.get("model"),
+            "latency_ms": result.get("latency_ms"),
+        }
+    )

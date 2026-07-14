@@ -1,4 +1,5 @@
 """wanderai/config/testing.py — Testing overrides."""
+
 from .base import BaseConfig
 
 
@@ -7,7 +8,7 @@ class TestingConfig(BaseConfig):
     DEBUG: bool = True
     # SQLite in-memory for fast test runs
     SQLALCHEMY_DATABASE_URI: str = "sqlite:///:memory:"
-    SQLALCHEMY_ENGINE_OPTIONS: dict = {}    # no pool options for SQLite
+    SQLALCHEMY_ENGINE_OPTIONS: dict = {}  # no pool options for SQLite
     WTF_CSRF_ENABLED: bool = False
     RATELIMIT_ENABLED: bool = False
     CACHE_TYPE: str = "SimpleCache"

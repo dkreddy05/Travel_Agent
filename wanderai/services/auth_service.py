@@ -2,6 +2,7 @@
 wanderai/services/auth_service.py
 Authentication business logic — registration, login, OAuth, token management.
 """
+
 from datetime import datetime
 
 from flask import current_app
@@ -58,6 +59,7 @@ class AuthService:
             # Queue verification email (non-blocking)
             try:
                 from wanderai.tasks.email_tasks import send_verification_email
+
                 send_verification_email.delay(user.id)
             except Exception:
                 pass  # Don't fail registration if email task is unavailable
@@ -68,7 +70,9 @@ class AuthService:
             logger.error("registration_failed", email=email, error=str(exc))
             return {"success": False, "error": "Registration failed. Please try again."}
 
-    def login(self, email: str, password: str, device_info: str = "", ip: str = "") -> dict:
+    def login(
+        self, email: str, password: str, device_info: str = "", ip: str = ""
+    ) -> dict:
         """Authenticate user and issue JWT token pair."""
         email = email.lower().strip()
         user = self._users.get_by_email(email)
@@ -111,7 +115,7 @@ class AuthService:
                         email=email.lower(),
                         username=username,
                         password_hash=None,
-                        email_verified=True,    # OAuth emails are pre-verified
+                        email_verified=True,  # OAuth emails are pre-verified
                         role=UserRole.USER,
                         provider=provider,
                         provider_id=provider_id,
@@ -119,7 +123,9 @@ class AuthService:
                     )
                     db.session.add(UserPreference(user_id=user.id))
                     db.session.commit()
-                    logger.info("oauth_user_created", provider=provider, user_id=user.id)
+                    logger.info(
+                        "oauth_user_created", provider=provider, user_id=user.id
+                    )
                 except Exception as exc:
                     db.session.rollback()
                     return {"success": False, "error": str(exc)}
@@ -135,7 +141,9 @@ class AuthService:
         db.session.commit()
         return {"success": True}
 
-    def refresh_tokens(self, refresh_jti: str, user_id: str, device_info: str = "", ip: str = "") -> dict:
+    def refresh_tokens(
+        self, refresh_jti: str, user_id: str, device_info: str = "", ip: str = ""
+    ) -> dict:
         """Issue a new access token given a valid refresh token JTI."""
         session = self._sessions.get_by_jti(refresh_jti)
         if not session or not session.is_active:
@@ -152,6 +160,7 @@ class AuthService:
     def logout(self, jti: str) -> None:
         """Revoke a specific session by JTI."""
         import redis as redis_lib
+
         try:
             r = redis_lib.from_url(current_app.config["REDIS_URL"])
             ttl = int(current_app.config["JWT_ACCESS_TOKEN_EXPIRES"].total_seconds())
@@ -166,8 +175,13 @@ class AuthService:
 
     def _issue_tokens(self, user: User, device_info: str = "", ip: str = "") -> dict:
         """Create JWT access + refresh tokens and persist the session."""
-        additional_claims = {"role": user.role.value, "email_verified": user.email_verified}
-        access_token = create_access_token(identity=user.id, additional_claims=additional_claims)
+        additional_claims = {
+            "role": user.role.value,
+            "email_verified": user.email_verified,
+        }
+        access_token = create_access_token(
+            identity=user.id, additional_claims=additional_claims
+        )
         refresh_token = create_refresh_token(identity=user.id)
 
         access_jti = get_jti(access_token)

@@ -3,6 +3,7 @@ wanderai/utils/security.py
 Cryptographic utilities — password hashing, token generation.
 Never store plain-text passwords. bcrypt cost factor 12 is OWASP recommended.
 """
+
 import secrets
 import string
 import bcrypt

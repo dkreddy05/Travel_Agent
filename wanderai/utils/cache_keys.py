@@ -3,6 +3,7 @@ wanderai/utils/cache_keys.py
 Central registry for all Redis cache key patterns.
 Single source of truth — no magic strings scattered in codebase.
 """
+
 import hashlib
 
 

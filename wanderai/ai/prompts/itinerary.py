@@ -2,6 +2,7 @@
 wanderai/ai/prompts/itinerary.py
 Versioned itinerary prompt templates.
 """
+
 from wanderai.ai.prompts.registry import PromptTemplate, register
 
 ITINERARY_USER_TEMPLATE = """\
@@ -23,12 +24,14 @@ Structure your response EXACTLY as follows:
 8. **Safety & Travel Tips** – 5 key tips
 """
 
-register(PromptTemplate(
-    name="itinerary",
-    version="2.0.0",
-    description="Day-by-day itinerary generation",
-    system="",   # uses global system prompt
-    user_template=ITINERARY_USER_TEMPLATE,
-    max_tokens=2000,
-    temperature=0.7,
-))
+register(
+    PromptTemplate(
+        name="itinerary",
+        version="2.0.0",
+        description="Day-by-day itinerary generation",
+        system="",  # uses global system prompt
+        user_template=ITINERARY_USER_TEMPLATE,
+        max_tokens=2000,
+        temperature=0.7,
+    )
+)

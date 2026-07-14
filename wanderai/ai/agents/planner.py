@@ -2,6 +2,7 @@
 wanderai/ai/agents/planner.py
 PlannerAgent — generates the multi-day itinerary structure.
 """
+
 from wanderai.ai.agents.state import TravelState
 from wanderai.observability.logger import get_logger
 
@@ -42,6 +43,7 @@ def planner_node(state: TravelState) -> TravelState:
     try:
         client = AIClient(current_app.config)
         from wanderai.ai.prompts.system import build_system_prompt
+
         result = client.complete(
             messages=[
                 {"role": "system", "content": build_system_prompt()},

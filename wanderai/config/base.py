@@ -3,6 +3,7 @@ wanderai/config/base.py
 Base configuration — all shared defaults.
 Environment-specific configs override these values.
 """
+
 import os
 from datetime import timedelta
 
@@ -21,8 +22,8 @@ class BaseConfig:
     SQLALCHEMY_ENGINE_OPTIONS: dict = {
         "pool_size": 10,
         "max_overflow": 20,
-        "pool_pre_ping": True,          # test connections before use
-        "pool_recycle": 3600,           # recycle connections every hour
+        "pool_pre_ping": True,  # test connections before use
+        "pool_recycle": 3600,  # recycle connections every hour
     }
 
     # ── Redis ────────────────────────────────────────────────
@@ -32,7 +33,9 @@ class BaseConfig:
     CACHE_DEFAULT_TIMEOUT: int = 3600
 
     # ── JWT ──────────────────────────────────────────────────
-    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", os.getenv("FLASK_SECRET_KEY", "change-me"))
+    JWT_SECRET_KEY: str = os.getenv(
+        "JWT_SECRET_KEY", os.getenv("FLASK_SECRET_KEY", "change-me")
+    )
     JWT_ACCESS_TOKEN_EXPIRES: timedelta = timedelta(minutes=15)
     JWT_REFRESH_TOKEN_EXPIRES: timedelta = timedelta(days=30)
     JWT_ALGORITHM: str = "HS256"
@@ -44,16 +47,20 @@ class BaseConfig:
     WATSONX_API_KEY: str = os.getenv("WATSONX_API_KEY", "")
     WATSONX_URL: str = os.getenv("WATSONX_URL", "")
     WATSONX_PROJECT_ID: str = os.getenv("WATSONX_PROJECT_ID", "")
-    GRANITE_MODEL_ID: str = os.getenv("GRANITE_MODEL_ID", "meta-llama/llama-3-3-70b-instruct")
+    GRANITE_MODEL_ID: str = os.getenv(
+        "GRANITE_MODEL_ID", "meta-llama/llama-3-3-70b-instruct"
+    )
 
     # ── LiteLLM / AI ─────────────────────────────────────────
-    AI_PRIMARY_MODEL: str = os.getenv("GRANITE_MODEL_ID", "meta-llama/llama-3-3-70b-instruct")
+    AI_PRIMARY_MODEL: str = os.getenv(
+        "GRANITE_MODEL_ID", "meta-llama/llama-3-3-70b-instruct"
+    )
     AI_FALLBACK_MODEL: str = os.getenv("AI_FALLBACK_MODEL", "")
     AI_MAX_TOKENS: int = int(os.getenv("AI_MAX_TOKENS", "1500"))
     AI_TEMPERATURE: float = float(os.getenv("AI_TEMPERATURE", "0.7"))
     AI_MAX_RETRIES: int = 3
     AI_TIMEOUT_SECONDS: int = 60
-    AI_CACHE_TTL: int = 3600                # 1 hour LLM response cache
+    AI_CACHE_TTL: int = 3600  # 1 hour LLM response cache
 
     # ── Qdrant ───────────────────────────────────────────────
     QDRANT_URL: str = os.getenv("QDRANT_URL", "http://localhost:6333")

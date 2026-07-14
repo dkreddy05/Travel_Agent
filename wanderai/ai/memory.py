@@ -3,6 +3,7 @@ wanderai/ai/memory.py
 DB-backed conversation memory manager.
 Replaces browser sessionStorage chat history with persistent DB storage.
 """
+
 from wanderai.repositories.conversation_repository import MessageRepository
 from wanderai.models.conversation import MessageRole
 
@@ -15,7 +16,7 @@ class ConversationMemory:
 
     # Rough estimate: 1 token ≈ 4 chars in English
     CHARS_PER_TOKEN = 4
-    MAX_CONTEXT_TOKENS = 3000   # leave room for system prompt + response
+    MAX_CONTEXT_TOKENS = 3000  # leave room for system prompt + response
 
     def __init__(self, conversation_id: str, max_turns: int = 20):
         self.conversation_id = conversation_id
@@ -34,10 +35,12 @@ class ConversationMemory:
         formatted = []
         for msg in messages:
             if msg.role in (MessageRole.USER, MessageRole.ASSISTANT):
-                formatted.append({
-                    "role": msg.role.value,
-                    "content": msg.content,
-                })
+                formatted.append(
+                    {
+                        "role": msg.role.value,
+                        "content": msg.content,
+                    }
+                )
 
         # Trim to token budget from the tail (most recent wins)
         return self._trim_to_budget(formatted)

@@ -2,6 +2,7 @@
 wanderai/models/conversation.py
 Conversation and Message models — replaces browser sessionStorage chat history.
 """
+
 import uuid
 from datetime import datetime
 from enum import Enum as PyEnum
@@ -24,12 +25,25 @@ class Conversation(db.Model):
     __tablename__ = "conversations"
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = db.Column(db.String(36), db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    trip_id = db.Column(db.String(36), db.ForeignKey("trips.id", ondelete="SET NULL"), nullable=True)
-    context_mode = db.Column(db.Enum(ContextMode), default=ContextMode.GENERAL, nullable=False)
-    title = db.Column(db.String(255), nullable=True)   # auto-generated from first message
+    user_id = db.Column(
+        db.String(36),
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    trip_id = db.Column(
+        db.String(36), db.ForeignKey("trips.id", ondelete="SET NULL"), nullable=True
+    )
+    context_mode = db.Column(
+        db.Enum(ContextMode), default=ContextMode.GENERAL, nullable=False
+    )
+    title = db.Column(
+        db.String(255), nullable=True
+    )  # auto-generated from first message
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
 
     user = db.relationship("User", back_populates="conversations")
     trip = db.relationship("Trip", back_populates="conversations")
@@ -60,15 +74,19 @@ class Message(db.Model):
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     conversation_id = db.Column(
-        db.String(36), db.ForeignKey("conversations.id", ondelete="CASCADE"),
-        nullable=False, index=True,
+        db.String(36),
+        db.ForeignKey("conversations.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     role = db.Column(db.Enum(MessageRole), nullable=False)
     content = db.Column(db.Text, nullable=False)
     model_used = db.Column(db.String(100), nullable=True)
     tokens_used = db.Column(db.Integer, nullable=True)
     latency_ms = db.Column(db.Integer, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    created_at = db.Column(
+        db.DateTime, default=datetime.utcnow, nullable=False, index=True
+    )
 
     conversation = db.relationship("Conversation", back_populates="messages")
 

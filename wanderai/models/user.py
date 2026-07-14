@@ -3,6 +3,7 @@ wanderai/models/user.py
 User, UserSession models.
 Uses UUID primary keys throughout for security and portability.
 """
+
 import uuid
 from datetime import datetime
 from enum import Enum as PyEnum
@@ -27,26 +28,51 @@ class User(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     username = db.Column(db.String(80), unique=True, nullable=True, index=True)
-    password_hash = db.Column(db.String(255), nullable=True)   # null for OAuth users
+    password_hash = db.Column(db.String(255), nullable=True)  # null for OAuth users
     email_verified = db.Column(db.Boolean, default=False, nullable=False)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     role = db.Column(db.Enum(UserRole), default=UserRole.USER, nullable=False)
-    provider = db.Column(db.Enum(AuthProvider), default=AuthProvider.LOCAL, nullable=False)
-    provider_id = db.Column(db.String(255), nullable=True)     # OAuth provider user ID
+    provider = db.Column(
+        db.Enum(AuthProvider), default=AuthProvider.LOCAL, nullable=False
+    )
+    provider_id = db.Column(db.String(255), nullable=True)  # OAuth provider user ID
     avatar_url = db.Column(db.String(500), nullable=True)
     email_verify_token = db.Column(db.String(128), nullable=True, index=True)
     password_reset_token = db.Column(db.String(128), nullable=True, index=True)
     password_reset_expires = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
 
     # Relationships
-    sessions = db.relationship("UserSession", back_populates="user", cascade="all, delete-orphan", lazy="dynamic")
-    trips = db.relationship("Trip", back_populates="user", cascade="all, delete-orphan", lazy="dynamic")
-    conversations = db.relationship("Conversation", back_populates="user", cascade="all, delete-orphan", lazy="dynamic")
-    preferences = db.relationship("UserPreference", back_populates="user", uselist=False, cascade="all, delete-orphan")
-    feedback = db.relationship("Feedback", back_populates="user", cascade="all, delete-orphan", lazy="dynamic")
-    audit_logs = db.relationship("AuditLog", back_populates="user", cascade="all, delete-orphan", lazy="dynamic")
+    sessions = db.relationship(
+        "UserSession",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        lazy="dynamic",
+    )
+    trips = db.relationship(
+        "Trip", back_populates="user", cascade="all, delete-orphan", lazy="dynamic"
+    )
+    conversations = db.relationship(
+        "Conversation",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        lazy="dynamic",
+    )
+    preferences = db.relationship(
+        "UserPreference",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+    feedback = db.relationship(
+        "Feedback", back_populates="user", cascade="all, delete-orphan", lazy="dynamic"
+    )
+    audit_logs = db.relationship(
+        "AuditLog", back_populates="user", cascade="all, delete-orphan", lazy="dynamic"
+    )
 
     # Composite index for OAuth lookup
     __table_args__ = (
@@ -71,10 +97,16 @@ class User(db.Model):
 
 class UserSession(db.Model):
     """Tracks per-device JWT sessions for multi-device revocation."""
+
     __tablename__ = "user_sessions"
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = db.Column(db.String(36), db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = db.Column(
+        db.String(36),
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     token_jti = db.Column(db.String(255), unique=True, nullable=False, index=True)
     refresh_jti = db.Column(db.String(255), unique=True, nullable=True, index=True)
     device_info = db.Column(db.Text, nullable=True)

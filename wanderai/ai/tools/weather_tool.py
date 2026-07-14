@@ -2,6 +2,7 @@
 wanderai/ai/tools/weather_tool.py
 Weather tool — calls OpenWeatherMap API, caches results in Redis.
 """
+
 import os
 import requests
 from wanderai.observability.logger import get_logger
@@ -30,7 +31,11 @@ def get_weather(destination: str, month: str, cache=None) -> dict:
             return {**cached, "cached": True}
 
     if not api_key:
-        return {"error": "Weather API not configured", "destination": destination, "month": month}
+        return {
+            "error": "Weather API not configured",
+            "destination": destination,
+            "month": month,
+        }
 
     try:
         response = requests.get(

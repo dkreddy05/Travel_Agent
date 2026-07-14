@@ -2,6 +2,7 @@
 tests/conftest.py
 Shared pytest fixtures for all test scopes.
 """
+
 import pytest
 
 
@@ -9,10 +10,12 @@ import pytest
 def app():
     """Create app with testing config — one instance per test session."""
     from wanderai.app import create_app
+
     application = create_app("testing")
 
     with application.app_context():
         from wanderai.extensions import db
+
         db.create_all()
         yield application
         db.drop_all()
@@ -28,6 +31,7 @@ def client(app):
 def db(app):
     """Database session with rollback after each test."""
     from wanderai.extensions import db as _db
+
     connection = _db.engine.connect()
     transaction = connection.begin()
 
@@ -42,6 +46,7 @@ def db(app):
 def test_user(db, app):
     """Create a test user in the database."""
     from wanderai.models.user import User, UserRole, AuthProvider
+
     user = User(
         email="test@wanderai.app",
         username="testuser",
@@ -60,6 +65,7 @@ def auth_headers(client, test_user, app):
     """Return Authorization headers for an authenticated user."""
     with app.app_context():
         from flask_jwt_extended import create_access_token
+
         token = create_access_token(
             identity=test_user.id,
             additional_claims={"role": "user", "email_verified": True},
@@ -85,6 +91,8 @@ def mock_llm(monkeypatch):
     def mock_run_chat(user_message, conversation_id, **kwargs):
         return mock_result
 
-    monkeypatch.setattr("wanderai.ai.pipeline.run_single_prompt", mock_run_single_prompt)
+    monkeypatch.setattr(
+        "wanderai.ai.pipeline.run_single_prompt", mock_run_single_prompt
+    )
     monkeypatch.setattr("wanderai.ai.pipeline.run_chat", mock_run_chat)
     return mock_result

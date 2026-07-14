@@ -2,8 +2,10 @@
 wanderai/observability/metrics.py
 Prometheus metrics definitions.
 """
+
 try:
     from prometheus_flask_exporter import PrometheusMetrics
+
     PROMETHEUS_AVAILABLE = True
 except ImportError:
     PROMETHEUS_AVAILABLE = False
@@ -19,7 +21,11 @@ def init_metrics(app):
     _metrics = PrometheusMetrics(app, path="/metrics")
 
     # Custom metrics
-    _metrics.info("wanderai_app_info", "Application info", version=app.config.get("APP_VERSION", "2.0.0"))
+    _metrics.info(
+        "wanderai_app_info",
+        "Application info",
+        version=app.config.get("APP_VERSION", "2.0.0"),
+    )
     return _metrics
 
 
