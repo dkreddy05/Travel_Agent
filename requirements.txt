@@ -30,8 +30,8 @@ langgraph>=0.1.0
 
 # ── RAG / Vector DB ───────────────────────────────────────────
 qdrant-client==1.9.1
-sentence-transformers==3.0.1
-transformers>=4.34.0,<5.0.0       # transitive dependency of sentence-transformers
+sentence-transformers>=5.0.0
+transformers>=5.3.0               # transitive dependency of sentence-transformers
 
 # ── Caching & Queue ───────────────────────────────────────────
 redis==5.0.7
