@@ -159,8 +159,13 @@ def reset_travel_graph():
 
 
 ALLOWED_EXTRA_KEYS = {
-    "destination", "days", "budget_tier", "travelers",
-    "interests", "transport", "accommodation",
+    "destination",
+    "days",
+    "budget_tier",
+    "travelers",
+    "interests",
+    "transport",
+    "accommodation",
 }
 
 
@@ -176,7 +181,9 @@ def run_agent_graph(
     """
     try:
         graph = get_travel_graph()
-        safe_context = {k: v for k, v in (extra_context or {}).items() if k in ALLOWED_EXTRA_KEYS}
+        safe_context = {
+            k: v for k, v in (extra_context or {}).items() if k in ALLOWED_EXTRA_KEYS
+        }
         initial_state = TravelState(
             user_id=user_id,
             conversation_id=conversation_id,

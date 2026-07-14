@@ -40,9 +40,14 @@ class Conversation(db.Model):
     title = db.Column(
         db.String(255), nullable=True
     )  # auto-generated from first message
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
+    )
     updated_at = db.Column(
-        db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
     )
 
     user = db.relationship("User", back_populates="conversations")
@@ -85,7 +90,10 @@ class Message(db.Model):
     tokens_used = db.Column(db.Integer, nullable=True)
     latency_ms = db.Column(db.Integer, nullable=True)
     created_at = db.Column(
-        db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+        index=True,
     )
 
     conversation = db.relationship("Conversation", back_populates="messages")

@@ -59,7 +59,9 @@ def send_password_reset_email(self, user_id: str, reset_token: str):
         if not user:
             return
 
-        reset_url = f"{current_app.config['APP_URL']}/reset-password?token={reset_token}"
+        reset_url = (
+            f"{current_app.config['APP_URL']}/reset-password?token={reset_token}"
+        )
 
         msg = Message(
             subject="Reset your WanderAI password",

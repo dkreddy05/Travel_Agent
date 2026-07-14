@@ -28,7 +28,10 @@ class UserPreference(db.Model):
     dream_destinations = db.Column(db.JSON, default=list)
     notes = db.Column(db.Text, nullable=True)
     updated_at = db.Column(
-        db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
     )
 
     user = db.relationship("User", back_populates="preferences")

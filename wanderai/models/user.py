@@ -40,9 +40,14 @@ class User(db.Model):
     email_verify_token = db.Column(db.String(128), nullable=True, index=True)
     password_reset_token = db.Column(db.String(128), nullable=True, index=True)
     password_reset_expires = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
+    )
     updated_at = db.Column(
-        db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
     )
 
     # Relationships
@@ -113,7 +118,9 @@ class UserSession(db.Model):
     ip_address = db.Column(db.String(45), nullable=True)  # IPv6 max 45 chars
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     expires_at = db.Column(db.DateTime, nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
+    )
 
     user = db.relationship("User", back_populates="sessions")
 

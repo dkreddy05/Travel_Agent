@@ -17,6 +17,7 @@ def _get_lock():
     global _lock
     if _lock is None:
         import threading
+
         _lock = threading.Lock()
     return _lock
 

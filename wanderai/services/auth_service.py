@@ -88,7 +88,10 @@ class AuthService:
             return {"success": False, "error": "Account is disabled"}
 
         if not user.email_verified:
-            return {"success": False, "error": "Please verify your email before logging in."}
+            return {
+                "success": False,
+                "error": "Please verify your email before logging in.",
+            }
 
         return self._issue_tokens(user, device_info=device_info, ip=ip)
 
@@ -168,11 +171,15 @@ class AuthService:
         refresh_jti = session.refresh_jti if session else None
 
         try:
-            access_ttl = int(current_app.config["JWT_ACCESS_TOKEN_EXPIRES"].total_seconds())
+            access_ttl = int(
+                current_app.config["JWT_ACCESS_TOKEN_EXPIRES"].total_seconds()
+            )
             cache.set(f"session:revoked:{jti}", "1", timeout=access_ttl)
 
             if refresh_jti:
-                refresh_ttl = int(current_app.config["JWT_REFRESH_TOKEN_EXPIRES"].total_seconds())
+                refresh_ttl = int(
+                    current_app.config["JWT_REFRESH_TOKEN_EXPIRES"].total_seconds()
+                )
                 cache.set(f"session:revoked:{refresh_jti}", "1", timeout=refresh_ttl)
         except Exception as exc:
             logger.warning("session_revoke_redis_failed", jti=jti, error=str(exc))
@@ -195,7 +202,9 @@ class AuthService:
         access_jti = get_jti(access_token)
         refresh_jti = get_jti(refresh_token)
 
-        expires_at = datetime.now(timezone.utc) + current_app.config["JWT_REFRESH_TOKEN_EXPIRES"]
+        expires_at = (
+            datetime.now(timezone.utc) + current_app.config["JWT_REFRESH_TOKEN_EXPIRES"]
+        )
 
         try:
             self._sessions.create(
