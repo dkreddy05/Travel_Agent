@@ -53,7 +53,7 @@ class BaseConfig:
 
     # ── LiteLLM / AI ─────────────────────────────────────────
     AI_PRIMARY_MODEL: str = os.getenv(
-        "GRANITE_MODEL_ID", "meta-llama/llama-3-3-70b-instruct"
+        "AI_PRIMARY_MODEL", "meta-llama/llama-3-3-70b-instruct"
     )
     AI_FALLBACK_MODEL: str = os.getenv("AI_FALLBACK_MODEL", "")
     AI_MAX_TOKENS: int = int(os.getenv("AI_MAX_TOKENS", "1500"))

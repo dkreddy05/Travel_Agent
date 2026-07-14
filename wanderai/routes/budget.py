@@ -40,7 +40,11 @@ def generate_budget():
         travel_style=travel_style,
     )
 
-    result = run_single_prompt(prompt, task="budget")
+    try:
+        result = run_single_prompt(prompt, task="budget")
+    except Exception as exc:
+        return error(f"Budget generation failed: {exc}", 500, "AI_ERROR")
+
     return success(
         {
             "budget_plan": result["text"],

@@ -37,7 +37,7 @@ def get_weather_advice():
         return error("Destination is required", 400)
 
     if detect_prompt_injection(destination):
-        return error("Invalid input", 400)
+        return error("Invalid input", 400, "PROMPT_INJECTION")
 
     # Try real weather API first
     live_weather = {}
@@ -57,7 +57,11 @@ def get_weather_advice():
             f"humidity {live_weather.get('humidity', '')}%"
         )
 
-    result = run_single_prompt(prompt, task="weather")
+    try:
+        result = run_single_prompt(prompt, task="weather")
+    except Exception as exc:
+        return error(f"Weather advice generation failed: {exc}", 500, "AI_ERROR")
+
     return success(
         {
             "weather_advice": result["text"],

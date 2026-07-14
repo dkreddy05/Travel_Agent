@@ -44,7 +44,8 @@ def coordinator_node(state: TravelState) -> TravelState:
             temperature=0.0,
             use_cache=True,
         )
-        intent = result["text"].strip().lower().split()[0]
+        words = result["text"].strip().lower().split()
+        intent = words[0] if words else "general"
         # Validate against allowed intents
         allowed = {
             "itinerary",

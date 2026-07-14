@@ -20,9 +20,12 @@ class PaginationParams:
     def from_request(cls) -> "PaginationParams":
         try:
             page = max(1, int(request.args.get("page", 1)))
-            per_page = min(
-                int(request.args.get("per_page", 20)),
-                cls.max_per_page,
+            per_page = max(
+                1,
+                min(
+                    int(request.args.get("per_page", 20)),
+                    cls.max_per_page,
+                ),
             )
         except (TypeError, ValueError):
             page, per_page = 1, 20

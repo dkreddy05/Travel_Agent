@@ -26,7 +26,9 @@ class UserRepository(BaseRepository[User]):
         return User.query.filter_by(provider=provider, provider_id=provider_id).first()
 
     def email_exists(self, email: str) -> bool:
-        return User.query.filter_by(email=email.lower()).count() > 0
+        return db.session.query(
+            User.query.filter_by(email=email.lower()).exists()
+        ).scalar()
 
 
 class SessionRepository(BaseRepository[UserSession]):

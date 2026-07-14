@@ -49,7 +49,11 @@ def get_recommendations():
         from_country=from_country,
     )
 
-    result = run_single_prompt(prompt, task="destination")
+    try:
+        result = run_single_prompt(prompt, task="destination")
+    except Exception as exc:
+        return success({"recommendations": "", "error": str(exc)}), 500
+
     return success(
         {
             "recommendations": result["text"],

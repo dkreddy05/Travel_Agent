@@ -1,5 +1,7 @@
 """wanderai/config/testing.py — Testing overrides."""
 
+from datetime import timedelta
+
 from .base import BaseConfig
 
 
@@ -15,6 +17,6 @@ class TestingConfig(BaseConfig):
     CELERY_TASK_ALWAYS_EAGER: bool = True
     CELERY_TASK_EAGER_PROPAGATES: bool = True
     # Short token expiry for testing revocation
-    JWT_ACCESS_TOKEN_EXPIRES_SECONDS: int = 30
+    JWT_ACCESS_TOKEN_EXPIRES: timedelta = timedelta(seconds=30)
     # Disable email sending in tests
     MAIL_SUPPRESS_SEND: bool = True

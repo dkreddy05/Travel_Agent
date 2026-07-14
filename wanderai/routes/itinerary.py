@@ -38,12 +38,18 @@ def generate_itinerary():
         return error("Invalid input", 400, "PROMPT_INJECTION")
 
     # Create trip record
+    try:
+        days = int(data.get("days", 7))
+        travelers = int(data.get("travelers", 1))
+    except (TypeError, ValueError):
+        return error("'days' and 'travelers' must be integers", 400)
+
     trip = _trip_repo.create(
         user_id=user_id,
         destination=destination,
-        days=int(data.get("days", 7)),
+        days=days,
         budget_tier=data.get("budget", "mid-range"),
-        travelers=int(data.get("travelers", 1)),
+        travelers=travelers,
         interests=data.get("interests", []),
         transport_preference=data.get("transport", "flexible"),
         accommodation_preference=data.get("accommodation", "hotel"),

@@ -24,12 +24,18 @@ def create_trip():
     if not destination:
         return error("Destination is required", 400)
 
+    try:
+        days = int(data.get("days", 7))
+        travelers = int(data.get("travelers", 1))
+    except (TypeError, ValueError):
+        return error("'days' and 'travelers' must be integers", 400)
+
     trip = _trip_repo.create(
         user_id=user_id,
         destination=destination,
         title=data.get("title") or destination,
-        days=int(data.get("days", 7)),
-        travelers=int(data.get("travelers", 1)),
+        days=days,
+        travelers=travelers,
         budget_tier=data.get("budget_tier"),
         interests=data.get("interests", []),
         transport_preference=data.get("transport"),

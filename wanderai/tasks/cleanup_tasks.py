@@ -17,9 +17,10 @@ def cleanup_expired_sessions():
     with app.app_context():
         from wanderai.models.user import UserSession
 
+        # Delete sessions that are BOTH expired AND inactive (already revoked).
+        # Active sessions past their expiry time are also cleaned up.
         expired = UserSession.query.filter(
             UserSession.expires_at < datetime.utcnow(),
-            ~UserSession.is_active,
         ).delete()
         db.session.commit()
 

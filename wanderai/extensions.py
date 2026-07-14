@@ -27,11 +27,12 @@ jwt = JWTManager()
 # Redis-backed cache
 cache = Cache()
 
-# Rate limiting (Redis-backed in production)
+# Rate limiting — storage_uri is resolved at request time from RATELIMIT_STORAGE_URL
+# config key, so this default is only used if the config key is absent.
 limiter = Limiter(
     key_func=get_remote_address,
     default_limits=["200 per hour"],
-    storage_uri="memory://",  # overridden in create_app with config
+    storage_uri=os.getenv("REDIS_URL", "memory://"),
 )
 
 # CORS
@@ -61,7 +62,7 @@ celery_app.conf.update(
     timezone="UTC",
     beat_schedule={
         "cleanup-expired-sessions": {
-            "task": "tasks.cleanup_expired_sessions",
+            "task": "wanderai.tasks.cleanup_tasks.cleanup_expired_sessions",
             "schedule": 86400,  # daily
         },
     },

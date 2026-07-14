@@ -47,8 +47,12 @@ class ConversationMemory:
 
     def _trim_to_budget(self, messages: list[dict]) -> list[dict]:
         """Remove oldest messages until context fits within token budget."""
+        from collections import deque
+
+        budget = self.MAX_CONTEXT_TOKENS * self.CHARS_PER_TOKEN
         total_chars = sum(len(m["content"]) for m in messages)
-        while messages and total_chars > self.MAX_CONTEXT_TOKENS * self.CHARS_PER_TOKEN:
-            removed = messages.pop(0)
+        dq = deque(messages)
+        while dq and total_chars > budget:
+            removed = dq.popleft()
             total_chars -= len(removed["content"])
-        return messages
+        return list(dq)

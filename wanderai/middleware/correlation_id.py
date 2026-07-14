@@ -31,7 +31,6 @@ def init_correlation_id(app):
     @app.before_request
     def _bind_correlation_id():
         from flask import request, g
-        import uuid
 
         clear_contextvars()
         cid = request.headers.get("X-Correlation-ID", str(uuid.uuid4()))
