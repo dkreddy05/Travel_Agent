@@ -17,7 +17,7 @@ from wanderai.utils.validators import detect_prompt_injection
 
 class TestOutputValidator:
     def test_valid_response(self):
-        text = "**Paris** is a beautiful city with stunning architecture and incredible food."
+        text = "**Paris** is a beautiful city with stunning architecture and incredible food. The Eiffel Tower at sunset is breathtaking, and the cafes along the Seine offer the perfect spot to watch the world go by."
         result = validate_response(text)
         assert result["valid"] is True
         assert result["issues"] == []

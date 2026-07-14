@@ -50,6 +50,8 @@ def create_app(config_name: str | None = None) -> Flask:
     # ── Load configuration ──────────────────────────────────
     cfg = config_map.get(config_name, config_map["default"])
     app.config.from_object(cfg)
+    if hasattr(cfg, "validate"):
+        cfg.validate()
 
     # ── Sentry error tracking ───────────────────────────────
     if app.config.get("SENTRY_DSN"):
