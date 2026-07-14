@@ -3,7 +3,7 @@ wanderai/ai/prompts/registry.py
 Versioned prompt template registry.
 Templates are registered here; the AI pipeline selects the correct version.
 """
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 
 

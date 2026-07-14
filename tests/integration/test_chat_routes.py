@@ -2,7 +2,6 @@
 tests/integration/test_chat_routes.py
 Integration tests for chat endpoints.
 """
-import pytest
 import json
 
 

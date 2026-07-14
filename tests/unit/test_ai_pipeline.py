@@ -3,7 +3,6 @@ tests/unit/test_ai_pipeline.py
 Unit tests for AI pipeline components.
 LLM calls are mocked — no real API calls in unit tests.
 """
-import pytest
 from wanderai.ai.output_validator import (
     validate_response, clean_response, extract_json_block, is_refusal
 )

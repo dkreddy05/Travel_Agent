@@ -2,7 +2,6 @@
 wanderai/ai/rag/retriever.py
 Qdrant-based semantic retrieval for the RAG pipeline.
 """
-from typing import Optional
 from wanderai.observability.logger import get_logger
 
 logger = get_logger(__name__)

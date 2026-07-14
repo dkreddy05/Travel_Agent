@@ -3,7 +3,7 @@ wanderai/routes/auth.py
 Authentication endpoints — register, login, OAuth, refresh, logout, verify email.
 """
 from flask import Blueprint, request, current_app, redirect
-from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity, get_current_user
+from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity
 from wanderai.services.auth_service import AuthService
 from wanderai.utils.response import success, created, error, validation_error
 from wanderai.extensions import limiter

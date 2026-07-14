@@ -2,11 +2,11 @@
 wanderai/routes/itinerary.py
 Itinerary generation — supports both sync and async (Celery) modes.
 """
-from flask import Blueprint, request, current_app
+from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from wanderai.extensions import db, limiter
 from wanderai.repositories.trip_repository import TripRepository, ItineraryRepository
-from wanderai.utils.response import success, created, error, not_found
+from wanderai.utils.response import success, created, error
 from wanderai.utils.validators import detect_prompt_injection
 
 itinerary_bp = Blueprint("itinerary", __name__)

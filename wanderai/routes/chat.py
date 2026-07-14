@@ -5,12 +5,11 @@ Replaces the old /api/chat with persistent DB-backed conversations.
 """
 from datetime import datetime
 from flask import Blueprint, request
-from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from wanderai.extensions import db
-from wanderai.models.conversation import Conversation, Message, MessageRole, ContextMode
+from wanderai.models.conversation import MessageRole, ContextMode
 from wanderai.repositories.conversation_repository import ConversationRepository, MessageRepository
-from wanderai.services.trip_service import TripService
 from wanderai.utils.response import success, created, error, not_found
 from wanderai.utils.pagination import PaginationParams
 from wanderai.utils.validators import detect_prompt_injection, validate_message_length
@@ -95,7 +94,7 @@ def send_message(conversation_id: str):
         return error("Message contains disallowed content", 400, "PROMPT_INJECTION")
 
     # Save user message
-    user_msg = _msg_repo.create(
+    _msg_repo.create(
         conversation_id=conversation_id,
         role=MessageRole.USER,
         content=message_text,

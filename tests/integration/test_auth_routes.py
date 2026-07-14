@@ -2,7 +2,6 @@
 tests/integration/test_auth_routes.py
 Integration tests for auth endpoints.
 """
-import pytest
 import json
 
 

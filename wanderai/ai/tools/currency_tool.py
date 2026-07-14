@@ -2,7 +2,6 @@
 wanderai/ai/tools/currency_tool.py
 Currency exchange rate tool — free tier of exchangerate.host, cached 6h.
 """
-import os
 import requests
 from wanderai.observability.logger import get_logger
 from wanderai.utils.cache_keys import currency as currency_cache_key

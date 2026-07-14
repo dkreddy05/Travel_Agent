@@ -5,16 +5,14 @@ Imports all models so autogenerate detects schema changes.
 """
 from logging.config import fileConfig
 import os
-from sqlalchemy import engine_from_config, pool
-from alembic import context
 
-# Load app models for autogenerate
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv()  # Must run before app imports so DATABASE_URL etc. are available
 
-# Import all models so Alembic sees them
-from wanderai.models import *  # noqa: F401, F403
-from wanderai.extensions import db
+from sqlalchemy import engine_from_config, pool  # noqa: E402
+from alembic import context  # noqa: E402
+from wanderai.models import *  # noqa: F401, F403, E402
+from wanderai.extensions import db  # noqa: E402
 
 config = context.config
 

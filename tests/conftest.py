@@ -3,7 +3,6 @@ tests/conftest.py
 Shared pytest fixtures for all test scopes.
 """
 import pytest
-from unittest.mock import MagicMock, patch
 
 
 @pytest.fixture(scope="session")

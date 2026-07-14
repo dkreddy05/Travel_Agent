@@ -4,7 +4,6 @@ Weather tool — calls OpenWeatherMap API, caches results in Redis.
 """
 import os
 import requests
-from typing import Optional
 from wanderai.observability.logger import get_logger
 from wanderai.utils.cache_keys import weather as weather_cache_key
 

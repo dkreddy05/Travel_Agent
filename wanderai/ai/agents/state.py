@@ -3,8 +3,7 @@ wanderai/ai/agents/state.py
 LangGraph shared state definition for the WanderAI multi-agent system.
 TypedDict ensures type safety across all agent nodes.
 """
-from typing import TypedDict, Annotated
-import operator
+from typing import TypedDict
 
 
 class TravelState(TypedDict, total=False):

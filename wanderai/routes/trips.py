@@ -5,7 +5,6 @@ Trip CRUD endpoints.
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from wanderai.extensions import db
-from wanderai.models.trip import Trip, TripStatus
 from wanderai.repositories.trip_repository import TripRepository
 from wanderai.utils.response import success, created, error, not_found
 from wanderai.utils.pagination import PaginationParams

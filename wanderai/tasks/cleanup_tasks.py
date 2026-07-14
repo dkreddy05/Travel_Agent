@@ -17,7 +17,7 @@ def cleanup_expired_sessions():
         from wanderai.models.user import UserSession
         expired = UserSession.query.filter(
             UserSession.expires_at < datetime.utcnow(),
-            UserSession.is_active == False,
+            ~UserSession.is_active,
         ).delete()
         db.session.commit()
 

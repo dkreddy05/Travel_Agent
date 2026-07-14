@@ -3,7 +3,7 @@ wanderai/routes/pages.py
 HTML page routes — serve Jinja2 templates.
 Migrated from the original app.py page routes, now as a Blueprint.
 """
-from flask import Blueprint, render_template, redirect, url_for
+from flask import Blueprint, render_template
 
 pages_bp = Blueprint("pages", __name__)
 

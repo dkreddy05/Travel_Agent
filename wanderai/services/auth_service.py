@@ -2,15 +2,13 @@
 wanderai/services/auth_service.py
 Authentication business logic — registration, login, OAuth, token management.
 """
-import uuid
-from datetime import datetime, timedelta
-from typing import Optional
+from datetime import datetime
 
 from flask import current_app
 from flask_jwt_extended import create_access_token, create_refresh_token, get_jti
 
 from wanderai.extensions import db
-from wanderai.models.user import User, UserSession, UserRole, AuthProvider
+from wanderai.models.user import User, UserRole, AuthProvider
 from wanderai.models.preference import UserPreference
 from wanderai.repositories.user_repository import UserRepository, SessionRepository
 from wanderai.utils.security import hash_password, verify_password, generate_token

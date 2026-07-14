@@ -9,7 +9,6 @@ Scenarios:
   - Generate budget plan
 """
 from locust import HttpUser, task, between
-import json
 
 
 class WanderAIUser(HttpUser):

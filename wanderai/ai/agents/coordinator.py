@@ -4,7 +4,6 @@ CoordinatorAgent — classifies user intent and routes to specialized agents.
 This is the entry node for every LangGraph execution.
 """
 from wanderai.ai.agents.state import TravelState
-from wanderai.ai.client import AIClient
 from wanderai.observability.logger import get_logger
 
 logger = get_logger(__name__)
