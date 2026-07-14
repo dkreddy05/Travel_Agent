@@ -98,7 +98,7 @@ def send_message(conversation_id: str):
         return error("Message contains disallowed content", 400, "PROMPT_INJECTION")
 
     # Save user message
-    user_msg = _msg_repo.create(
+    _user_msg = _msg_repo.create(
         conversation_id=conversation_id,
         role=MessageRole.USER,
         content=message_text,
