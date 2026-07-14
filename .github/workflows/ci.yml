@@ -32,7 +32,7 @@ jobs:
         run: bandit -r wanderai/ -ll
 
       - name: Dependency vulnerability scan
-        run: safety check -r requirements.txt
+        run: pip-audit -r requirements.txt
 
   test:
     name: Tests

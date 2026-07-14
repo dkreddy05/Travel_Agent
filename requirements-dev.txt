@@ -12,7 +12,7 @@ ruff==0.4.9                 # linting + formatting
 black==24.4.2
 mypy==1.10.1
 bandit==1.7.9               # security SAST
-safety==3.2.3               # dependency vulnerability scan
+pip-audit==2.7.3            # dependency vulnerability scan
 
 # Type stubs
 types-bleach
