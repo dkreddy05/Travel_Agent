@@ -69,10 +69,12 @@ class TestRunChat:
         pipeline.init_pipeline({"AI_PRIMARY_MODEL": "test-model"})
 
         long_response = "Here is your detailed itinerary! " * 4
+
         class FakeClient:
             def complete(self, messages, model=None, max_tokens=None, temperature=None):
                 # Add a tiny sleep to ensure pipeline_ms > 0
                 import time
+
                 time.sleep(0.002)
                 return {
                     "text": long_response,
