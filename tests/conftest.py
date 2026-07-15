@@ -32,14 +32,12 @@ def db(app):
     """Database session with rollback after each test."""
     from wanderai.extensions import db as _db
 
-    connection = _db.engine.connect()
-    transaction = connection.begin()
+    _db.session.begin(nested=True)
 
     yield _db
 
+    _db.session.rollback()
     _db.session.close()
-    transaction.rollback()
-    connection.close()
 
 
 @pytest.fixture
