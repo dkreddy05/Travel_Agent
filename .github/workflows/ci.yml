@@ -115,6 +115,5 @@ jobs:
             -e DATABASE_URL=sqlite:///test.db \
             -p 5000:5000 \
             wanderai:${{ github.sha }}
-          sleep 10
-          curl -f http://localhost:5000/api/v1/health || exit 1
+          timeout 60 bash -c 'until curl -f -s http://localhost:5000/api/v1/health > /dev/null; do sleep 2; done' || (docker logs test_container && exit 1)
           docker stop test_container
