@@ -101,6 +101,7 @@ jobs:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
     needs: test
+    if: ${{ secrets.REGISTRY_USER != '' }}
     outputs:
       image_tag: ${{ steps.meta.outputs.image_tag }}
 
