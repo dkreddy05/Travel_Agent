@@ -1,8 +1,5 @@
 """Tests for AI prompts registry and templates."""
 
-import pytest
-
-
 class TestPromptRegistry:
     def test_register_and_get(self):
         from wanderai.ai.prompts.registry import register, get, PromptTemplate

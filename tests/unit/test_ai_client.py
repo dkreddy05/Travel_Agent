@@ -1,8 +1,5 @@
 """Tests for AIClient with mocked external dependencies."""
 
-import pytest
-
-
 class TestAIClient:
     def test_init_with_defaults(self):
         from wanderai.ai.client import AIClient

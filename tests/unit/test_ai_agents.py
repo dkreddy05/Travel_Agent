@@ -1,8 +1,5 @@
 """Tests for AI agents module."""
 
-import pytest
-
-
 class FakeClient:
     def complete(self, messages, model=None, max_tokens=None, temperature=None,
                  use_cache=True):
@@ -77,7 +74,6 @@ class TestPlanner:
         from wanderai.ai.agents.planner import planner_node
 
         fake_client = FakeClient()
-        original_complete = fake_client.complete
 
         def capturing_complete(messages, model=None, max_tokens=None, temperature=None):
             return {"text": "Day 1: Visit Eiffel Tower"}

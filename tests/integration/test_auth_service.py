@@ -1,8 +1,5 @@
 """Integration tests for AuthService business logic."""
 
-import pytest
-
-
 class TestAuthServiceRegister:
     def test_register_success(self, db, app, monkeypatch):
         from wanderai.services.auth_service import AuthService
@@ -190,7 +187,7 @@ class TestAuthServiceEmailVerification:
 
         service = AuthService()
         with app.app_context():
-            result = service.register(
+            service.register(
                 email="verify@test.com", password="SecurePass1"
             )
             user = User.query.filter_by(email="verify@test.com").first()
@@ -213,7 +210,7 @@ class TestAuthServiceEmailVerification:
 class TestAuthServiceLogout:
     def test_logout(self, db, app, monkeypatch):
         from wanderai.services.auth_service import AuthService
-        from wanderai.extensions import cache as real_cache
+
 
         class FakeCache:
             def __init__(self):

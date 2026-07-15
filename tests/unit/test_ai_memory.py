@@ -1,8 +1,5 @@
 """Tests for ConversationMemory."""
 
-import pytest
-
-
 class TestConversationMemory:
     def test_init(self):
         from wanderai.ai.memory import ConversationMemory

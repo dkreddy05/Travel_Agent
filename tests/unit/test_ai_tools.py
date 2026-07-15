@@ -1,8 +1,5 @@
 """Tests for weather and currency tools."""
 
-import pytest
-
-
 class TestWeatherTool:
     def test_get_weather_no_api_key(self, monkeypatch):
         import os
@@ -24,7 +21,7 @@ class TestWeatherTool:
 
         from wanderai.ai.tools.weather_tool import get_weather
         import os
-        monkeyattack = monkeypatch.setattr(os, "getenv", lambda k, d="": "fake-key" if k == "OPENWEATHER_API_KEY" else d)
+        monkeypatch.setattr(os, "getenv", lambda k, d="": "fake-key" if k == "OPENWEATHER_API_KEY" else d)
 
         result = get_weather("London", "July", cache=FakeCache())
         assert result["cached"] is True

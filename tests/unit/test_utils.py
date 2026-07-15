@@ -1,6 +1,5 @@
 """Tests for utility modules — pure function tests."""
 
-import pytest
 from wanderai.utils.security import (
     hash_password,
     verify_password,
