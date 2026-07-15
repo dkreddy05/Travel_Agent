@@ -13,7 +13,6 @@ black==24.4.2
 mypy==1.10.1
 bandit==1.7.9               # security SAST
 pip-audit==2.7.3            # dependency vulnerability scan
-safety==3.2.11              # dependency vulnerability scan (alternative)
 
 # Type stubs
 types-bleach
