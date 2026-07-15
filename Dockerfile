@@ -28,8 +28,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 curl && \
     rm -rf /var/lib/apt/lists/*
 
-# Create non-root user
-RUN groupadd -r wanderai && useradd -r -g wanderai wanderai
+# Create non-root user and change ownership of the workdir
+RUN groupadd -r wanderai && useradd -r -g wanderai wanderai && \
+    chown wanderai:wanderai /app
 
 # Copy installed packages from builder
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
