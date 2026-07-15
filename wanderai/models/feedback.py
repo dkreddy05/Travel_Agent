@@ -57,7 +57,7 @@ class AuditLog(db.Model):
     action = db.Column(db.String(100), nullable=False, index=True)
     entity_type = db.Column(db.String(50), nullable=True)
     entity_id = db.Column(db.String(36), nullable=True)
-    metadata = db.Column(db.JSON, nullable=True)
+    audit_metadata = db.Column("metadata", db.JSON, nullable=True)
     ip_address = db.Column(db.String(45), nullable=True)
     user_agent = db.Column(db.String(300), nullable=True)
     created_at = db.Column(
