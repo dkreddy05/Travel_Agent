@@ -1,8 +1,10 @@
 """Tests for AI agents module."""
 
+
 class FakeClient:
-    def complete(self, messages, model=None, max_tokens=None, temperature=None,
-                 use_cache=True):
+    def complete(
+        self, messages, model=None, max_tokens=None, temperature=None, use_cache=True
+    ):
         return {"text": "Test response"}
 
 
@@ -23,8 +25,14 @@ class TestCoordinator:
             "agent_outputs": {},
         }
         with monkeypatch.context() as m:
-            m.setattr("wanderai.ai.agents.coordinator.logger",
-                      type("FakeLogger", (), {"warning": lambda *a, **kw: None, "info": lambda *a, **kw: None})())
+            m.setattr(
+                "wanderai.ai.agents.coordinator.logger",
+                type(
+                    "FakeLogger",
+                    (),
+                    {"warning": lambda *a, **kw: None, "info": lambda *a, **kw: None},
+                )(),
+            )
             result = coordinator_node(state)
         assert result["intent"] == "itinerary"
 
@@ -43,8 +51,14 @@ class TestCoordinator:
             "agent_outputs": {},
         }
         with monkeypatch.context() as m:
-            m.setattr("wanderai.ai.agents.coordinator.logger",
-                      type("FakeLogger", (), {"warning": lambda *a, **kw: None, "info": lambda *a, **kw: None})())
+            m.setattr(
+                "wanderai.ai.agents.coordinator.logger",
+                type(
+                    "FakeLogger",
+                    (),
+                    {"warning": lambda *a, **kw: None, "info": lambda *a, **kw: None},
+                )(),
+            )
             result = coordinator_node(state)
         assert result["intent"] == "general"
 
@@ -63,8 +77,14 @@ class TestCoordinator:
             "agent_outputs": {},
         }
         with monkeypatch.context() as m:
-            m.setattr("wanderai.ai.agents.coordinator.logger",
-                      type("FakeLogger", (), {"warning": lambda *a, **kw: None, "info": lambda *a, **kw: None})())
+            m.setattr(
+                "wanderai.ai.agents.coordinator.logger",
+                type(
+                    "FakeLogger",
+                    (),
+                    {"warning": lambda *a, **kw: None, "info": lambda *a, **kw: None},
+                )(),
+            )
             result = coordinator_node(state)
         assert result["intent"] == "general"
 
@@ -79,9 +99,7 @@ class TestPlanner:
             return {"text": "Day 1: Visit Eiffel Tower"}
 
         fake_client.complete = capturing_complete
-        monkeypatch.setattr(
-            "wanderai.ai.pipeline.get_client", lambda: fake_client
-        )
+        monkeypatch.setattr("wanderai.ai.pipeline.get_client", lambda: fake_client)
 
         state = {
             "user_message": "Plan a trip to Paris",
@@ -108,9 +126,7 @@ class TestPlanner:
             return {"text": "Itinerary with RAG context"}
 
         fake_client.complete = capturing_complete
-        monkeypatch.setattr(
-            "wanderai.ai.pipeline.get_client", lambda: fake_client
-        )
+        monkeypatch.setattr("wanderai.ai.pipeline.get_client", lambda: fake_client)
 
         state = {
             "user_message": "Plan a trip",
@@ -148,8 +164,10 @@ class TestPlanner:
             "rag_context": [],
         }
         with monkeypatch.context() as m:
-            m.setattr("wanderai.ai.agents.planner.logger",
-                      type("FakeLogger", (), {"error": lambda *a, **kw: None})())
+            m.setattr(
+                "wanderai.ai.agents.planner.logger",
+                type("FakeLogger", (), {"error": lambda *a, **kw: None})(),
+            )
             result = planner_node(state)
         assert "planner" in result["agent_outputs"]
         assert "Could not generate" in result["agent_outputs"]["planner"]
@@ -185,9 +203,7 @@ class TestReviewer:
             return {"text": "Merged and reviewed content"}
 
         fake_client.complete = capturing_complete
-        monkeypatch.setattr(
-            "wanderai.ai.pipeline.get_client", lambda: fake_client
-        )
+        monkeypatch.setattr("wanderai.ai.pipeline.get_client", lambda: fake_client)
 
         state = {
             "agent_outputs": {
@@ -216,8 +232,10 @@ class TestReviewer:
             "user_message": "",
         }
         with monkeypatch.context() as m:
-            m.setattr("wanderai.ai.agents.reviewer.logger",
-                      type("FakeLogger", (), {"warning": lambda *a, **kw: None})())
+            m.setattr(
+                "wanderai.ai.agents.reviewer.logger",
+                type("FakeLogger", (), {"warning": lambda *a, **kw: None})(),
+            )
             result = reviewer_node(state)
         assert "Plan content" in result["final_response"]
         assert "Weather info" in result["final_response"]
@@ -248,16 +266,12 @@ class TestGraph:
         def raiser():
             raise ImportError("No module named 'langgraph'")
 
-        monkeypatch.setattr(
-            "wanderai.ai.agents.graph.get_travel_graph", raiser
-        )
+        monkeypatch.setattr("wanderai.ai.agents.graph.get_travel_graph", raiser)
 
         def fake_run_chat(user_message, conversation_id, extra_context=None):
             return {"text": "Fallback response"}
 
-        monkeypatch.setattr(
-            "wanderai.ai.pipeline.run_chat", fake_run_chat
-        )
+        monkeypatch.setattr("wanderai.ai.pipeline.run_chat", fake_run_chat)
 
         result = graph_mod.run_agent_graph(
             user_message="Hello",

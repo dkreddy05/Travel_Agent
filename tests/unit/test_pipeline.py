@@ -91,6 +91,7 @@ class TestRunChat:
 
         def fake_rag(query, context=None):
             return []
+
         monkeypatch.setattr(pipeline, "_retrieve_rag_context", fake_rag)
 
         from flask import Flask
@@ -116,9 +117,7 @@ class TestRetrieveRagContext:
         def failing_retrieve(query, top_k=4):
             raise Exception("Qdrant unavailable")
 
-        monkeypatch.setattr(
-            "wanderai.ai.rag.retriever.retrieve", failing_retrieve
-        )
+        monkeypatch.setattr("wanderai.ai.rag.retriever.retrieve", failing_retrieve)
 
         result = pipeline._retrieve_rag_context("Paris")
         assert result == []
@@ -130,12 +129,8 @@ class TestRetrieveRagContext:
             assert "Tokyo" in query
             return [{"text": "Tokyo is great in spring", "score": 0.9}]
 
-        monkeypatch.setattr(
-            "wanderai.ai.rag.retriever.retrieve", mock_retrieve
-        )
+        monkeypatch.setattr("wanderai.ai.rag.retriever.retrieve", mock_retrieve)
 
-        result = pipeline._retrieve_rag_context(
-            "What to do?", {"destination": "Tokyo"}
-        )
+        result = pipeline._retrieve_rag_context("What to do?", {"destination": "Tokyo"})
         assert len(result) == 1
         assert "Tokyo" in result[0]

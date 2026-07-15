@@ -1,5 +1,6 @@
 """Integration tests for AuthService business logic."""
 
+
 class TestAuthServiceRegister:
     def test_register_success(self, db, app, monkeypatch):
         from wanderai.services.auth_service import AuthService
@@ -28,9 +29,7 @@ class TestAuthServiceRegister:
 
         service = AuthService()
         with app.app_context():
-            result = service.register(
-                email="weakpw@example.com", password="123"
-            )
+            result = service.register(email="weakpw@example.com", password="123")
         assert result["success"] is False
         assert "8 characters" in result["error"]
 
@@ -50,9 +49,7 @@ class TestAuthServiceRegister:
 
         service = AuthService()
         with app.app_context():
-            result = service.register(
-                email="prefs@example.com", password="SecurePass1"
-            )
+            result = service.register(email="prefs@example.com", password="SecurePass1")
             user = result["user"]
             pref = UserPreference.query.filter_by(user_id=user.id).first()
             assert pref is not None
@@ -67,9 +64,11 @@ class TestAuthServiceLogin:
             service.register(email="login@example.com", password="SecurePass1")
             # Manually verify email
             from wanderai.models.user import User
+
             user = User.query.filter_by(email="login@example.com").first()
             user.email_verified = True
             from wanderai.extensions import db
+
             db.session.commit()
 
             result = service.login(email="login@example.com", password="SecurePass1")
@@ -93,9 +92,11 @@ class TestAuthServiceLogin:
         with app.app_context():
             service.register(email="wrongpw@test.com", password="SecurePass1")
             from wanderai.models.user import User
+
             user = User.query.filter_by(email="wrongpw@test.com").first()
             user.email_verified = True
             from wanderai.extensions import db
+
             db.session.commit()
 
             result = service.login(email="wrongpw@test.com", password="WrongPass1")
@@ -109,10 +110,12 @@ class TestAuthServiceLogin:
         with app.app_context():
             service.register(email="disabled@test.com", password="SecurePass1")
             from wanderai.models.user import User
+
             user = User.query.filter_by(email="disabled@test.com").first()
             user.is_active = False
             user.email_verified = True
             from wanderai.extensions import db
+
             db.session.commit()
 
             result = service.login(email="disabled@test.com", password="SecurePass1")
@@ -125,9 +128,7 @@ class TestAuthServiceLogin:
         service = AuthService()
         with app.app_context():
             service.register(email="unverified@test.com", password="SecurePass1")
-            result = service.login(
-                email="unverified@test.com", password="SecurePass1"
-            )
+            result = service.login(email="unverified@test.com", password="SecurePass1")
         assert result["success"] is False
         assert "verify your email" in result["error"].lower()
 
@@ -187,9 +188,7 @@ class TestAuthServiceEmailVerification:
 
         service = AuthService()
         with app.app_context():
-            service.register(
-                email="verify@test.com", password="SecurePass1"
-            )
+            service.register(email="verify@test.com", password="SecurePass1")
             user = User.query.filter_by(email="verify@test.com").first()
             token = user.email_verify_token
             assert token is not None
@@ -211,7 +210,6 @@ class TestAuthServiceLogout:
     def test_logout(self, db, app, monkeypatch):
         from wanderai.services.auth_service import AuthService
 
-
         class FakeCache:
             def __init__(self):
                 self.store = {}
@@ -229,15 +227,18 @@ class TestAuthServiceLogout:
         with app.app_context():
             service.register(email="logout@test.com", password="SecurePass1")
             from wanderai.models.user import User
+
             user = User.query.filter_by(email="logout@test.com").first()
             user.email_verified = True
             from wanderai.extensions import db
+
             db.session.commit()
 
             login_result = service.login(
                 email="logout@test.com", password="SecurePass1"
             )
             from flask_jwt_extended import get_jti
+
             jti = get_jti(login_result["access_token"])
 
             service.logout(jti)

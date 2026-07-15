@@ -17,12 +17,14 @@ class TestTripsRoutes:
         with app.app_context():
             response = client.post(
                 "/api/v1/trips",
-                data=json.dumps({
-                    "destination": "Paris",
-                    "start_date": "2025-06-01",
-                    "end_date": "2025-06-07",
-                    "budget_tier": "mid-range",
-                }),
+                data=json.dumps(
+                    {
+                        "destination": "Paris",
+                        "start_date": "2025-06-01",
+                        "end_date": "2025-06-07",
+                        "budget_tier": "mid-range",
+                    }
+                ),
                 headers=auth_headers,
             )
             assert response.status_code == 201

@@ -1,9 +1,13 @@
 """Tests for weather and currency tools."""
 
+
 class TestWeatherTool:
     def test_get_weather_no_api_key(self, monkeypatch):
         import os
-        monkeypatch.setattr(os, "getenv", lambda k, d="": "" if k == "OPENWEATHER_API_KEY" else d)
+
+        monkeypatch.setattr(
+            os, "getenv", lambda k, d="": "" if k == "OPENWEATHER_API_KEY" else d
+        )
 
         from wanderai.ai.tools.weather_tool import get_weather
 
@@ -21,7 +25,12 @@ class TestWeatherTool:
 
         from wanderai.ai.tools.weather_tool import get_weather
         import os
-        monkeypatch.setattr(os, "getenv", lambda k, d="": "fake-key" if k == "OPENWEATHER_API_KEY" else d)
+
+        monkeypatch.setattr(
+            os,
+            "getenv",
+            lambda k, d="": "fake-key" if k == "OPENWEATHER_API_KEY" else d,
+        )
 
         result = get_weather("London", "July", cache=FakeCache())
         assert result["cached"] is True
@@ -29,7 +38,12 @@ class TestWeatherTool:
 
     def test_get_weather_api_error(self, monkeypatch):
         import os
-        monkeypatch.setattr(os, "getenv", lambda k, d="": "fake-key" if k == "OPENWEATHER_API_KEY" else d)
+
+        monkeypatch.setattr(
+            os,
+            "getenv",
+            lambda k, d="": "fake-key" if k == "OPENWEATHER_API_KEY" else d,
+        )
 
         def mock_get(url, params, timeout):
             raise Exception("Connection error")
@@ -39,7 +53,14 @@ class TestWeatherTool:
         from wanderai.ai.tools.weather_tool import get_weather
 
         with monkeypatch.context() as m:
-            m.setattr("wanderai.ai.tools.weather_tool.logger", type("FakeLogger", (), {"warning": lambda *a, **kw: None, "debug": lambda *a, **kw: None})())
+            m.setattr(
+                "wanderai.ai.tools.weather_tool.logger",
+                type(
+                    "FakeLogger",
+                    (),
+                    {"warning": lambda *a, **kw: None, "debug": lambda *a, **kw: None},
+                )(),
+            )
             result = get_weather("Paris", "June")
 
         assert "error" in result
@@ -70,7 +91,14 @@ class TestCurrencyTool:
         from wanderai.ai.tools.currency_tool import get_exchange_rate
 
         with monkeypatch.context() as m:
-            m.setattr("wanderai.ai.tools.currency_tool.logger", type("FakeLogger", (), {"warning": lambda *a, **kw: None, "debug": lambda *a, **kw: None})())
+            m.setattr(
+                "wanderai.ai.tools.currency_tool.logger",
+                type(
+                    "FakeLogger",
+                    (),
+                    {"warning": lambda *a, **kw: None, "debug": lambda *a, **kw: None},
+                )(),
+            )
             result = get_exchange_rate("USD", "EUR")
 
         assert "error" in result
@@ -91,7 +119,14 @@ class TestCurrencyTool:
         from wanderai.ai.tools.currency_tool import get_exchange_rate
 
         with monkeypatch.context() as m:
-            m.setattr("wanderai.ai.tools.currency_tool.logger", type("FakeLogger", (), {"warning": lambda *a, **kw: None, "debug": lambda *a, **kw: None})())
+            m.setattr(
+                "wanderai.ai.tools.currency_tool.logger",
+                type(
+                    "FakeLogger",
+                    (),
+                    {"warning": lambda *a, **kw: None, "debug": lambda *a, **kw: None},
+                )(),
+            )
             result = get_exchange_rate("USD", "EUR")
 
         assert result["rate"] == 0.92

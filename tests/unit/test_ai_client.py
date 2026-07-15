@@ -1,5 +1,6 @@
 """Tests for AIClient with mocked external dependencies."""
 
+
 class TestAIClient:
     def test_init_with_defaults(self):
         from wanderai.ai.client import AIClient
@@ -51,7 +52,9 @@ class TestAIClient:
         def mock_watsonx(messages, model_id, **params):
             return "Hello, how can I help you?"
 
-        monkeypatch.setattr(client_mod, "_get_watsonx_messages_completion", mock_watsonx)
+        monkeypatch.setattr(
+            client_mod, "_get_watsonx_messages_completion", mock_watsonx
+        )
 
         client = client_mod.AIClient({"AI_PRIMARY_MODEL": "test-model"})
         result = client.complete(
@@ -73,13 +76,17 @@ class TestAIClient:
                 raise ConnectionError("API unavailable")
             return "Fallback response"
 
-        monkeypatch.setattr(client_mod, "_get_watsonx_messages_completion", mock_watsonx_primary_fails)
+        monkeypatch.setattr(
+            client_mod, "_get_watsonx_messages_completion", mock_watsonx_primary_fails
+        )
 
-        client = client_mod.AIClient({
-            "AI_PRIMARY_MODEL": "primary",
-            "AI_FALLBACK_MODEL": "fallback",
-            "AI_MAX_RETRIES": 2,
-        })
+        client = client_mod.AIClient(
+            {
+                "AI_PRIMARY_MODEL": "primary",
+                "AI_FALLBACK_MODEL": "fallback",
+                "AI_MAX_RETRIES": 2,
+            }
+        )
 
         with monkeypatch.context() as m:
             m.setattr(client_mod.logger, "warning", lambda *a, **kw: None)
@@ -99,13 +106,17 @@ class TestAIClient:
         def always_fails(messages, model_id, **params):
             raise ConnectionError("Always fails")
 
-        monkeypatch.setattr(client_mod, "_get_watsonx_messages_completion", always_fails)
+        monkeypatch.setattr(
+            client_mod, "_get_watsonx_messages_completion", always_fails
+        )
 
-        client = client_mod.AIClient({
-            "AI_PRIMARY_MODEL": "primary",
-            "AI_FALLBACK_MODEL": "",
-            "AI_MAX_RETRIES": 2,
-        })
+        client = client_mod.AIClient(
+            {
+                "AI_PRIMARY_MODEL": "primary",
+                "AI_FALLBACK_MODEL": "",
+                "AI_MAX_RETRIES": 2,
+            }
+        )
 
         with monkeypatch.context() as m:
             m.setattr(client_mod.logger, "warning", lambda *a, **kw: None)
@@ -134,7 +145,9 @@ class TestAIClient:
         def mock_watsonx(messages, model_id, **params):
             return "Success"
 
-        monkeypatch.setattr(client_mod, "_get_watsonx_messages_completion", mock_watsonx)
+        monkeypatch.setattr(
+            client_mod, "_get_watsonx_messages_completion", mock_watsonx
+        )
 
         client = client_mod.AIClient({"AI_PRIMARY_MODEL": "test-model"})
         client.set_cache(FakeCache())
@@ -155,7 +168,9 @@ class TestAIClient:
             used_model[0] = model_id
             return "OK"
 
-        monkeypatch.setattr(client_mod, "_get_watsonx_messages_completion", mock_watsonx)
+        monkeypatch.setattr(
+            client_mod, "_get_watsonx_messages_completion", mock_watsonx
+        )
 
         client = client_mod.AIClient({"AI_PRIMARY_MODEL": "default-model"})
         client.complete(

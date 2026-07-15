@@ -1,5 +1,6 @@
 """Tests for ConversationMemory."""
 
+
 class TestConversationMemory:
     def test_init(self):
         from wanderai.ai.memory import ConversationMemory

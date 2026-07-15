@@ -1,5 +1,6 @@
 """Tests for RAG modules — retriever and ingestion."""
 
+
 class TestRetriever:
     def test_retrieve_returns_empty_on_error(self, monkeypatch):
         from wanderai.ai.rag.retriever import retrieve
