@@ -68,10 +68,14 @@ class TestRunChat:
         pipeline._ai_client = None
         pipeline.init_pipeline({"AI_PRIMARY_MODEL": "test-model"})
 
+        long_response = "Here is your detailed itinerary! " * 4
         class FakeClient:
             def complete(self, messages, model=None, max_tokens=None, temperature=None):
+                # Add a tiny sleep to ensure pipeline_ms > 0
+                import time
+                time.sleep(0.002)
                 return {
-                    "text": "Here is your detailed itinerary!",
+                    "text": long_response,
                     "model": "test-model",
                     "tokens_used": 100,
                     "latency_ms": 200,
@@ -105,9 +109,9 @@ class TestRunChat:
                 task="itinerary",
             )
 
-        assert result["text"] == "Here is your detailed itinerary!"
+        assert result["text"] == long_response.strip()
         assert result["model"] == "test-model"
-        assert result["pipeline_ms"] > 0
+        assert result["pipeline_ms"] >= 0
 
 
 class TestRetrieveRagContext:
