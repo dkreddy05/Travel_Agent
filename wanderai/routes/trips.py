@@ -6,6 +6,7 @@ Trip CRUD endpoints.
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from wanderai.extensions import db
+from wanderai.models.trip import BudgetTier
 from wanderai.repositories.trip_repository import TripRepository
 from wanderai.utils.response import success, created, error, not_found
 from wanderai.utils.pagination import PaginationParams
@@ -30,13 +31,21 @@ def create_trip():
     except (TypeError, ValueError):
         return error("'days' and 'travelers' must be integers", 400)
 
+    budget_tier_str = data.get("budget_tier")
+    budget_tier = None
+    if budget_tier_str:
+        try:
+            budget_tier = BudgetTier(budget_tier_str)
+        except ValueError:
+            budget_tier = None
+
     trip = _trip_repo.create(
         user_id=user_id,
         destination=destination,
         title=data.get("title") or destination,
         days=days,
         travelers=travelers,
-        budget_tier=data.get("budget_tier"),
+        budget_tier=budget_tier,
         interests=data.get("interests", []),
         transport_preference=data.get("transport"),
         accommodation_preference=data.get("accommodation"),

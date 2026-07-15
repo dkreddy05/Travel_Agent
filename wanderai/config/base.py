@@ -10,7 +10,9 @@ from datetime import timedelta
 
 class BaseConfig:
     # ── Core Flask ──────────────────────────────────────────
-    SECRET_KEY: str = os.getenv("FLASK_SECRET_KEY", "change-me-in-production")
+    SECRET_KEY: str = os.getenv(
+        "FLASK_SECRET_KEY", "wanderai-dev-secret-key-32-chars-minimum!!"
+    )
     DEBUG: bool = False
     TESTING: bool = False
 
@@ -34,7 +36,8 @@ class BaseConfig:
 
     # ── JWT ──────────────────────────────────────────────────
     JWT_SECRET_KEY: str = os.getenv(
-        "JWT_SECRET_KEY", os.getenv("FLASK_SECRET_KEY", "change-me")
+        "JWT_SECRET_KEY",
+        os.getenv("FLASK_SECRET_KEY", "wanderai-dev-jwt-secret-key-32chars!"),
     )
     JWT_ACCESS_TOKEN_EXPIRES: timedelta = timedelta(minutes=15)
     JWT_REFRESH_TOKEN_EXPIRES: timedelta = timedelta(days=30)

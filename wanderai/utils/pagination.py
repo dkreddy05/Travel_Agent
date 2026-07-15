@@ -17,6 +17,7 @@ MAX_PER_PAGE: int = 100
 class PaginationParams:
     page: int = 1
     per_page: int = 20
+    MAX_PER_PAGE: int = 100
 
     @classmethod
     def from_request(cls) -> "PaginationParams":
