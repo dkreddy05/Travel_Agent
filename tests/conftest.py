@@ -56,7 +56,7 @@ def test_user(db, app):
         provider=AuthProvider.LOCAL,
     )
     db.session.add(user)
-    db.session.commit()
+    db.session.flush()
     return user
 
 
