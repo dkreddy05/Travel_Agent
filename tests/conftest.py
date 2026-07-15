@@ -29,15 +29,18 @@ def client(app):
 
 @pytest.fixture
 def db(app):
-    """Database session with rollback after each test."""
+    """Fresh database tables for each test — guarantees isolation."""
     from wanderai.extensions import db as _db
 
-    _db.session.begin(nested=True)
+    with app.app_context():
+        _db.drop_all()
+        _db.create_all()
 
     yield _db
 
-    _db.session.rollback()
-    _db.session.close()
+    with app.app_context():
+        _db.session.remove()
+        _db.drop_all()
 
 
 @pytest.fixture
